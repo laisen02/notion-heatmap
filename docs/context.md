@@ -1,4 +1,4 @@
-# Notion Heatmap Web App - Developer Guide
+# Notion Heatmap notionheatmnap.com Web App - Developer Guide
 
 ## Overview
 
