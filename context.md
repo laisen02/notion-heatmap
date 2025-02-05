@@ -11,6 +11,83 @@ The heatmap uses a 5-color gradient scale based on user-defined colors, where da
 
 ---
 
+## **Heatmap Features**
+
+### **1. Heatmap Display**
+
+- **Functionality**: 
+  - Displays a 365-day heatmap based on the habit data fetched from Notion.
+  - **Colors**: The heatmap uses a 5-color gradient based on user-defined colors. Darker shades represent more time spent on the activity.
+  - **Hover Effects**: When hovering over a cell in the heatmap, show the **date** and the **recorded hours** for that day.
+  - **Labels**: Display labels for **months** and days **Mon, Wed, Fri, Sun**.
+  - **Year Selection**: Users can choose which year to display (defaults to the current year).
+  - **Dark Mode Toggle**: Users can toggle between light and dark modes.
+  - **Week Start Preference**: A toggle allows users to choose whether the week starts on **Monday** or **Sunday** (default: Monday).
+
+### **2. Data Processing & Scaling**
+
+- **Normalization**: 
+  - **Median normalization** is applied to avoid bias from extreme data values.
+  - **Logarithmic Scaling**: Time spent on activities is scaled using a logarithmic formula.
+    - Example: If the median maximum daily time is 4 hours, color levels are proportional to this value.
+  - Supports **multi-year tracking** (e.g., 2024, 2023), if such data exists.
+  - Bypasses Notion’s 100-record API limit by applying filters after fetching all relevant data.
+
+
+
+### **3. User Authentication & Data Management**
+
+- **Supabase Authentication**:
+  - Sign up and log in using **Google** or **email/password**.
+  - **User Settings** and **heatmap configurations** are stored in the **Supabase** database.
+
+### **4. Storing the Embed Link:**
+
+When a user creates a new heatmap, the system generates an embed link for the heatmap. This embed link can then be stored in the backend database, specifically in the Heatmaps Table of the Supabase database.
+    
+- Flow of Storing and Retrieving the Embed Link:
+
+    When the heatmap is created:
+        The user provides the necessary data (Notion database ID, heatmap name, color theme, etc.).
+        The system generates an embed link (e.g., a URL that can be used to embed the heatmap into a Notion page).
+        This embed link is then saved in the Heatmaps Table along with other heatmap settings (name, color, privacy settings, etc.).
+
+    When the user accesses their dashboard:
+        The system queries the Heatmaps Table to retrieve all the user's heatmap records.
+        The embed link associated with each heatmap is included in the data that’s returned.
+        The dashboard renders each heatmap with an option to copy the embed link (e.g., using a "Copy" button next to the embed link for easy copying).
+
+
+### **6. Drag-and-drop reordering of heatmap blocks on the user’s public profile page**
+
+- When a user rearranges the heatmap blocks on their public profile page, you would update the display_order value in the Heatmaps Table for each heatmap.
+    - The drag-and-drop interaction would trigger an update to the database where you set the appropriate display_order value for each heatmap based on the new position.
+    The display_order value can be an integer starting from 1 for the first block, 2 for the second, and so on. The order will be determined by the user's drag-and-drop arrangement.
+
+- How to Implement the Ordering Logic:
+
+   - Frontend: When the user drags and drops a heatmap block into a new position, the frontend (e.g., React component) will need to capture the new order and send an API request to the backend.
+
+    - Backend: The backend will need to update the display_order of each heatmap for that user based on the new order and save it in the database.
+
+    - Rendering: When the user visits their profile page again, the system will query the heatmaps sorted by the display_order field and display them in the correct order.
+
+- Considerations for display_order:
+
+    - Handling Gaps: If a user deletes or moves blocks around, automatically reordering the remaining blocks so that there are no gaps in the numbering.
+
+    - Edge Cases: For new users or if no custom order is set, assign a default order based on sequentially in the order they were created.
+
+
+### **5. Privacy Option**
+
+- **Dropdown Selection**:
+  - **Public** (default): The heatmap is displayed on the user’s public profile.
+  - **Private**: The heatmap is hidden from the user’s profile but can still be shared via an embed link.
+
+---
+
+
 ## **Pages & Navigation**
 
 ### **1. Home Page (/)**
@@ -111,81 +188,6 @@ The heatmap uses a 5-color gradient scale based on user-defined colors, where da
     - Step 1: Click "Delete My Account".
     - Step 2: Confirm deletion by re-entering their username and accepting a permanent deletion warning.
 
----
-
-## **Heatmap Features**
-
-### **1. Heatmap Display**
-
-- **Functionality**: 
-  - Displays a 365-day heatmap based on the habit data fetched from Notion.
-  - **Colors**: The heatmap uses a 5-color gradient based on user-defined colors. Darker shades represent more time spent on the activity.
-  - **Hover Effects**: When hovering over a cell in the heatmap, show the **date** and the **recorded hours** for that day.
-  - **Labels**: Display labels for **months** and days **Mon, Wed, Fri, Sun**.
-  - **Year Selection**: Users can choose which year to display (defaults to the current year).
-  - **Dark Mode Toggle**: Users can toggle between light and dark modes.
-  - **Week Start Preference**: A toggle allows users to choose whether the week starts on **Monday** or **Sunday** (default: Monday).
-
-### **2. Data Processing & Scaling**
-
-- **Normalization**: 
-  - **Median normalization** is applied to avoid bias from extreme data values.
-  - **Logarithmic Scaling**: Time spent on activities is scaled using a logarithmic formula.
-    - Example: If the median maximum daily time is 4 hours, color levels are proportional to this value.
-  - Supports **multi-year tracking** (e.g., 2024, 2023), if such data exists.
-  - Bypasses Notion’s 100-record API limit by applying filters after fetching all relevant data.
-
-
-
-### **3. User Authentication & Data Management**
-
-- **Supabase Authentication**:
-  - Sign up and log in using **Google** or **email/password**.
-  - **User Settings** and **heatmap configurations** are stored in the **Supabase** database.
-
-### **4. Storing the Embed Link:**
-
-When a user creates a new heatmap, the system generates an embed link for the heatmap. This embed link can then be stored in the backend database, specifically in the Heatmaps Table of the Supabase database.
-    
-- Flow of Storing and Retrieving the Embed Link:
-
-    When the heatmap is created:
-        The user provides the necessary data (Notion database ID, heatmap name, color theme, etc.).
-        The system generates an embed link (e.g., a URL that can be used to embed the heatmap into a Notion page).
-        This embed link is then saved in the Heatmaps Table along with other heatmap settings (name, color, privacy settings, etc.).
-
-    When the user accesses their dashboard:
-        The system queries the Heatmaps Table to retrieve all the user's heatmap records.
-        The embed link associated with each heatmap is included in the data that’s returned.
-        The dashboard renders each heatmap with an option to copy the embed link (e.g., using a "Copy" button next to the embed link for easy copying).
-
-
-### **6. Drag-and-drop reordering of heatmap blocks on the user’s public profile page**
-
-- When a user rearranges the heatmap blocks on their public profile page, you would update the display_order value in the Heatmaps Table for each heatmap.
-    - The drag-and-drop interaction would trigger an update to the database where you set the appropriate display_order value for each heatmap based on the new position.
-    The display_order value can be an integer starting from 1 for the first block, 2 for the second, and so on. The order will be determined by the user's drag-and-drop arrangement.
-
-- How to Implement the Ordering Logic:
-
-   - Frontend: When the user drags and drops a heatmap block into a new position, the frontend (e.g., React component) will need to capture the new order and send an API request to the backend.
-
-    - Backend: The backend will need to update the display_order of each heatmap for that user based on the new order and save it in the database.
-
-    - Rendering: When the user visits their profile page again, the system will query the heatmaps sorted by the display_order field and display them in the correct order.
-
-- Considerations for display_order:
-
-    - Handling Gaps: If a user deletes or moves blocks around, automatically reordering the remaining blocks so that there are no gaps in the numbering.
-
-    - Edge Cases: For new users or if no custom order is set, assign a default order based on sequentially in the order they were created.
-
-
-### **5. Privacy Option**
-
-- **Dropdown Selection**:
-  - **Public** (default): The heatmap is displayed on the user’s public profile.
-  - **Private**: The heatmap is hidden from the user’s profile but can still be shared via an embed link.
 
 ---
 
