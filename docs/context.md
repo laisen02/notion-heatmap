@@ -258,15 +258,64 @@ When a user creates a new heatmap, the system generates an embed link for the he
     When the user clicks on the button, the embed link is copied to the clipboard.
 8. User can embed the copied heatmap link into their Notion dashboard.
 
-  
+
+
+---
+## **Initial Folder Structure Overview**
+    /notion-heatmap
+    │
+    ├── /docs                    # Documentation folder
+    │   └── context.md             # Developer Guide and other project docs
+    │
+    ├── /public                  # Static files (images, fonts, etc.)
+    │
+    ├── /src                     # Source files
+    │   ├── /components          # Reusable components (buttons, modals, etc.)
+    │   ├── /pages               # Next.js pages
+    │   │   ├── /auth            # Authentication pages (login, signup)
+    │   │   ├── /create          # Create new heatmap page
+    │   │   ├── /dashboard       # User dashboard page
+    │   │   ├── /edit            # Edit heatmap page
+    │   │   ├── /profile         # User profile page
+    │   │   └── /settings        # User settings page
+    │   ├── /hooks               # Custom React hooks
+    │   ├── /context             # Context API for global state management
+    │   ├── /styles              # Global styles and theme configurations
+    │   ├── /utils               # Utility functions and helpers
+    │   └── /api                 # API routes for backend interactions
+    │
+    ├── /tests                   # Test files
+    │
+    ├── /scripts                 # Scripts for build, deployment, etc.
+    │
+    ├── .env                     # Environment variables
+    ├── package.json             # Project metadata and dependencies
+    └── README.md                # Project documentation
+
+
+**Starting Folder Path**, Working Directory: The base folder for the project is located at : 
+- E:\100_Project\building-saas\notion-heatmap
+
+This is the folder where I begin to work on the web app.
+This is where I will perform my development work, including running commands, installing dependencies,git, and launching the application.
+
 
 ---
 
 ## **Future Improvements**
 
-- Allow users to export heatmap data.
-- Add weekly/monthly filtering for heatmaps.
-- Introduce AI-based habit insights to provide more personalized recommendations.
+
+- Export Functionality: Allow users to export heatmap data.
+- Blog: Add a blog page with templates.
+- SEO: Improve SEO for better discoverability.
+- File Hosting: Use ImageKit or Cloudinary for scalable file hosting.
+- Weekly/Monthly Filtering: Add filtering options for timeframes.
+- AI Insights: Provide personalized habit recommendations using AI.
+- Subscription Model: Implement paid plans with feature restrictions.
+- Affiliate Program: Enable users to earn credits via affiliate sharing. Credit can spent to access some part of the paid plan feature.
+- Leaderboard: Track and motivate user with streaks, habits and etc.
+- Community Space: Showcase activities and inspire others.
+
 
 ---
 
