@@ -265,7 +265,8 @@ When a user creates a new heatmap, the system generates an embed link for the he
     /notion-heatmap
     │
     ├── /docs                    # Documentation folder
-    │   └── context.md             # Developer Guide and other project docs
+    │   ├── context.md           # Developer Guide and other project docs
+    │   └── development-guide.md # Development steps.
     │
     ├── /public                  # Static files (images, fonts, etc.)
     │
@@ -320,3 +321,7 @@ This is where I will perform my development work, including running commands, in
 ---
 
 This guide provides an in-depth look at the structure and features of the **Notion Heatmap Web App**, detailing both front-end and back-end development processes, as well as the data flow and user interaction. This comprehensive overview ensures that developers can successfully implement and extend the application.
+
+
+# Development Guide
+For step on development the web app, please refer to (./development-guide.md).
