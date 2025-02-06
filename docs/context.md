@@ -307,6 +307,7 @@ This is where I will perform my development work, including running commands, in
 
 
 - Export Functionality: Allow users to export heatmap data.
+- Add Notion & Apple sign in auth for user auth sign in.
 - Blog: Add a blog page with templates.
 - SEO: Improve SEO for better discoverability.
 - File Hosting: Use ImageKit or Cloudinary for scalable file hosting.

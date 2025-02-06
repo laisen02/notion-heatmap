@@ -1,6 +1,7 @@
 import { Inter } from 'next/font/google'
 import '../styles/globals.css'
-import RootLayout from '@/components/layout/root-layout'
+import { MainNav } from '@/components/layout/nav'
+import { Toaster } from 'sonner'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -9,11 +10,17 @@ export const metadata = {
   description: 'Visualize your Notion habits with beautiful heatmaps',
 }
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <RootLayout>{children}</RootLayout>
+        <MainNav />
+        <main>{children}</main>
+        <Toaster />
       </body>
     </html>
   )

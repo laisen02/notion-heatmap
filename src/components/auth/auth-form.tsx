@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Icons } from "@/components/ui/icons"
+import { toast } from "sonner"
 
 interface AuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -24,25 +25,40 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { error, data } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${location.origin}/auth/callback`,
           },
         })
-        if (error) throw error
+        if (error) {
+          toast.error(error.message)
+          return
+        }
+
+        toast.success("Check your email for the confirmation link")
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error, data } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
-        if (error) throw error
+        if (error) {
+          if (error.message === 'Invalid login credentials') {
+            toast.error('Invalid email or password')
+          } else {
+            toast.error(error.message)
+          }
+          return
+        }
+        
+        toast.success('Successfully signed in')
         router.refresh()
         router.push("/dashboard")
       }
     } catch (error) {
       console.error("Authentication error:", error)
+      toast.error('An unexpected error occurred')
     } finally {
       setIsLoading(false)
     }
@@ -50,15 +66,26 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
 
   const handleGoogleSignIn = async () => {
     try {
+      setIsLoading(true)
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       })
-      if (error) throw error
+      if (error) {
+        toast.error(error.message)
+        return
+      }
     } catch (error) {
       console.error("Google sign in error:", error)
+      toast.error("Failed to sign in with Google")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -78,6 +105,7 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
               disabled={isLoading}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
           <div className="grid gap-1">
@@ -90,6 +118,8 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
               disabled={isLoading}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
             />
           </div>
           <Button disabled={isLoading}>
@@ -110,7 +140,7 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
           </span>
         </div>
       </div>
-      <Button variant="outline" type="button" onClick={handleGoogleSignIn}>
+      <Button variant="outline" type="button" onClick={handleGoogleSignIn} disabled={isLoading}>
         {isLoading ? (
           <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
         ) : (
@@ -122,6 +152,7 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
         variant="link"
         className="px-0 font-normal"
         onClick={() => setIsSignUp(!isSignUp)}
+        disabled={isLoading}
       >
         {isSignUp ? "Already have an account? Sign in" : "Create an account"}
       </Button>
