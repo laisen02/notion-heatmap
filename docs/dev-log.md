@@ -159,6 +159,36 @@
 - Updated create form to use OAuth flow
 - Added environment variables for Notion integration
 
+### Notion API Integration (2025-02-05 19:00)
+- Added database content fetching functionality
+- Implemented data validation and processing
+- Added preview functionality to create form
+- Created utility functions for data mapping
+- Added error handling for API requests
+
+### Data Fetching and Validation Improvements (2025-02-05 19:30)
+- Added TypeScript types for Notion data structures
+- Improved data validation:
+  - Type checking for database columns
+  - Validation of date and activity values
+  - Better error handling and messages
+- Added date range utilities for heatmap
+- Implemented data processing with proper typing
+- Added support for different Notion property types:
+  - Date properties
+  - Formula properties
+  - Text properties
+  - Select properties
+
+### Database Selection Improvements (2025-02-05 20:00)
+- Added database search functionality
+- Improved database selection UI:
+  - Added database titles and IDs
+  - Added search filtering
+  - Added loading states
+- Updated Notion OAuth scopes for database access
+- Added Notion branding and icons
+
 ## Next Steps
 - [x] Set up Supabase database schema
 - [x] Implement authentication system
@@ -166,7 +196,8 @@
 - [x] Implement UI components for heatmap creation
 - [x] Implement Notion OAuth integration
 - [ ] Create heatmap visualization component
-- [ ] Add data fetching and processing
+- [ ] Add data caching
+- [ ] Add real-time updates
 - [ ] Implement embed link generation
 
 ---

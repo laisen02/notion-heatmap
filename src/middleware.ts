@@ -2,26 +2,52 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export async function middleware(req: NextRequest) {
+export async function middleware(request: NextRequest) {
   const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
-  const { data: { session } } = await supabase.auth.getSession()
+  const supabase = createMiddlewareClient({ req: request, res })
 
-  // List of public routes that don't require authentication
-  const publicRoutes = ['/', '/auth']
-  const isPublicRoute = publicRoutes.some(route => req.nextUrl.pathname === route)
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
-  if (!session && !isPublicRoute) {
-    return NextResponse.redirect(new URL('/auth', req.url))
+  // If there's no session and the user is trying to access a protected route
+  if (!session && isProtectedRoute(request.nextUrl.pathname)) {
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = '/auth'
+    redirectUrl.searchParams.set('from', request.nextUrl.pathname)
+    return NextResponse.redirect(redirectUrl)
   }
 
-  if (session && req.nextUrl.pathname === '/auth') {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+  // If there's a session and the user is trying to access auth pages
+  if (session && isAuthRoute(request.nextUrl.pathname)) {
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = '/dashboard'
+    return NextResponse.redirect(redirectUrl)
   }
 
   return res
 }
 
+// Protected routes that require authentication
+function isProtectedRoute(pathname: string): boolean {
+  const protectedRoutes = ['/dashboard', '/create', '/edit', '/settings']
+  return protectedRoutes.some(route => pathname.startsWith(route))
+}
+
+// Auth routes that should redirect to dashboard if user is already logged in
+function isAuthRoute(pathname: string): boolean {
+  return pathname.startsWith('/auth')
+}
+
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public (public files)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+  ],
 } 

@@ -1,4 +1,5 @@
 import { AuthForm } from "@/components/auth/auth-form"
+import { ResetPasswordButton } from "@/components/auth/reset-password-button"
 
 export default function AuthPage() {
   return (
@@ -13,6 +14,9 @@ export default function AuthPage() {
           </p>
         </div>
         <AuthForm />
+        <div className="text-center space-y-2">
+          <ResetPasswordButton />
+        </div>
       </div>
     </div>
   )
