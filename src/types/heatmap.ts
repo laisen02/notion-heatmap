@@ -11,9 +11,10 @@ export interface HeatmapConfig {
   description?: string
   notionApiKey: string
   databaseId: string
+  dateColumn: string
   timeColumn: string
-  activityColumn: string
   propertyColumn: string
+  activityColumn: string
   colorTheme: ColorTheme
   weekStart: 'monday' | 'sunday'
   isPublic: boolean

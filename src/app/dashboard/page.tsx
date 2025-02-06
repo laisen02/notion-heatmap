@@ -4,6 +4,25 @@ import { HeatmapCard } from "@/components/heatmap/heatmap-card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
+async function getHeatmapData(heatmapId: string) {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notion/data`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ heatmapId }),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    console.error('Failed to fetch heatmap data:', await response.text())
+    return []
+  }
+
+  const { data } = await response.json()
+  return data
+}
+
 export default async function DashboardPage() {
   const supabase = createServerComponentClient({ cookies })
   
@@ -17,6 +36,14 @@ export default async function DashboardPage() {
     return <div>Failed to load heatmaps</div>
   }
 
+  // Fetch data for each heatmap
+  const heatmapsWithData = await Promise.all(
+    heatmaps.map(async (heatmap) => ({
+      config: heatmap,
+      data: await getHeatmapData(heatmap.id)
+    }))
+  )
+
   return (
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
@@ -27,16 +54,16 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {heatmaps?.map((heatmap) => (
+        {heatmapsWithData.map(({ config, data }) => (
           <HeatmapCard
-            key={heatmap.id}
-            config={heatmap}
-            data={[]} // TODO: Fetch actual data
+            key={config.id}
+            config={config}
+            data={data}
           />
         ))}
       </div>
 
-      {heatmaps?.length === 0 && (
+      {heatmaps.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">No heatmaps yet. Create your first one!</p>
         </div>

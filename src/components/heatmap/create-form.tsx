@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Button } from "@/components/ui/button"
@@ -17,15 +17,17 @@ import {
 } from "@/components/ui/select"
 import { toast } from "sonner"
 import { getDatabaseSchema, getDatabaseContent, getNotionClient } from "@/lib/notion"
+import { Icons } from "@/components/icons"
 
 interface FormData {
   name: string
   description: string
   notionApiKey: string
   databaseId: string
+  dateColumn: string
   timeColumn: string
-  activityColumn: string
   propertyColumn: string
+  activityColumn: string
   colorTheme: string
   weekStart: string
   isPublic: boolean
@@ -37,18 +39,28 @@ interface FormData {
   }
 }
 
+interface DatabaseSchema {
+  [key: string]: {
+    type: string
+    name: string
+  }
+}
+
 export function CreateHeatmapForm() {
   const router = useRouter()
   const supabase = createClientComponentClient()
   const [isLoading, setIsLoading] = useState(false)
+  const [databaseSchema, setDatabaseSchema] = useState<DatabaseSchema | null>(null)
+  const [isValidatingNotion, setIsValidatingNotion] = useState(false)
   const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
     notionApiKey: "",
     databaseId: "",
+    dateColumn: "",
     timeColumn: "",
-    activityColumn: "",
     propertyColumn: "",
+    activityColumn: "",
     colorTheme: "orange",
     weekStart: "monday",
     isPublic: true,
@@ -60,8 +72,57 @@ export function CreateHeatmapForm() {
     }
   })
 
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      toast.error('Please enter a heatmap name')
+      return false
+    }
+
+    if (!formData.notionApiKey.trim()) {
+      toast.error('Please enter your Notion API key')
+      return false
+    }
+
+    if (!formData.databaseId.trim()) {
+      toast.error('Please enter your database ID')
+      return false
+    }
+
+    if (!databaseSchema) {
+      toast.error('Please ensure your Notion credentials are valid')
+      return false
+    }
+
+    if (!formData.dateColumn) {
+      toast.error('Please select a date column')
+      return false
+    }
+
+    if (!formData.timeColumn) {
+      toast.error('Please select a time/duration column')
+      return false
+    }
+
+    if (!formData.propertyColumn) {
+      toast.error('Please select an activity type column')
+      return false
+    }
+
+    if (!formData.activityColumn.trim()) {
+      toast.error('Please enter an activity type to track')
+      return false
+    }
+
+    return true
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
+    if (!validateForm()) {
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -102,15 +163,16 @@ export function CreateHeatmapForm() {
           description: formData.description,
           notion_api_key: formData.notionApiKey,
           database_id: formData.databaseId,
+          date_column: formData.dateColumn,
           time_column: formData.timeColumn,
-          activity_column: formData.activityColumn,
           property_column: formData.propertyColumn,
+          activity_column: formData.activityColumn,
           color_theme: formData.colorTheme,
           week_start: formData.weekStart,
           is_public: formData.isPublic,
           insights: formData.insights,
           user_id: user.id,
-          display_order: 0 // Add this if your table requires it
+          display_order: 0
         })
         .select()
         .single()
@@ -146,6 +208,49 @@ export function CreateHeatmapForm() {
     }
   }
 
+  // Function to validate Notion credentials and fetch schema
+  const validateNotionAndFetchSchema = async () => {
+    if (!formData.notionApiKey || !formData.databaseId) return
+
+    setIsValidatingNotion(true)
+    try {
+      const response = await fetch('/api/notion/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          apiKey: formData.notionApiKey,
+          databaseId: formData.databaseId,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to validate Notion access')
+      }
+
+      const { database } = await response.json()
+      setDatabaseSchema(database.properties)
+      toast.success('Notion database connected successfully')
+    } catch (error) {
+      console.error('Validation error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to validate Notion access')
+      setDatabaseSchema(null)
+    } finally {
+      setIsValidatingNotion(false)
+    }
+  }
+
+  // Validate Notion credentials when they change
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      validateNotionAndFetchSchema()
+    }, 500) // Debounce validation
+
+    return () => clearTimeout(timeoutId)
+  }, [formData.notionApiKey, formData.databaseId])
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="space-y-4">
@@ -172,94 +277,167 @@ export function CreateHeatmapForm() {
         </div>
 
         {/* Notion Settings */}
-        <div className="space-y-2">
-          <Label htmlFor="notionApiKey">Notion API Key</Label>
-          <Input
-            id="notionApiKey"
-            type="password"
-            value={formData.notionApiKey}
-            onChange={(e) => setFormData({ ...formData, notionApiKey: e.target.value })}
-            placeholder="ntn_xxxxxxxx..."
-            required
-          />
-          <div className="text-sm text-muted-foreground space-y-1">
-            <div>To get your API key:</div>
-            <ol className="list-decimal list-inside">
-              <li>Go to <a 
-                href="https://www.notion.so/my-integrations" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                Notion Integrations
-              </a></li>
-              <li>Click "New integration"</li>
-              <li>Name it "Notion Heatmap"</li>
-              <li>Select your workspace</li>
-              <li>Under "Capabilities", enable:
-                <ul className="list-disc list-inside ml-4">
-                  <li>Read content</li>
-                  <li>Read databases</li>
-                </ul>
-              </li>
-              <li>Copy the "Internal Integration Token" (starts with ntn_)</li>
-            </ol>
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Notion Database Configuration</h3>
+          
+          {/* API Key and Database ID fields */}
+          <div className="space-y-2">
+            <Label htmlFor="notionApiKey">Notion API Key</Label>
+            <Input
+              id="notionApiKey"
+              type="password"
+              value={formData.notionApiKey}
+              onChange={(e) => setFormData({ ...formData, notionApiKey: e.target.value })}
+              placeholder="ntn_xxxxxxxx..."
+              required
+            />
+            <div className="text-sm text-muted-foreground space-y-1">
+              <div>To get your API key:</div>
+              <ol className="list-decimal list-inside">
+                <li>Go to <a 
+                  href="https://www.notion.so/my-integrations" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Notion Integrations
+                </a></li>
+                <li>Click "New integration"</li>
+                <li>Name it "Notion Heatmap"</li>
+                <li>Select your workspace</li>
+                <li>Under "Capabilities", enable:
+                  <ul className="list-disc list-inside ml-4">
+                    <li>Read content</li>
+                    <li>Read databases</li>
+                  </ul>
+                </li>
+                <li>Copy the "Internal Integration Token" (starts with ntn_)</li>
+              </ol>
+            </div>
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="databaseId">Database ID</Label>
-          <Input
-            id="databaseId"
-            value={formData.databaseId}
-            onChange={(e) => setFormData({ ...formData, databaseId: e.target.value })}
-            placeholder="xxxxx-xxxxx-xxxxx-xxxxx"
-            required
-          />
-          <div className="text-sm text-muted-foreground space-y-1">
-            <div>To get your database ID and share it:</div>
-            <ol className="list-decimal list-inside">
-              <li>Open your Notion database</li>
-              <li>Copy the ID from the URL (after the workspace name and before ?v=)</li>
-              <li>Click "Share" in the top right</li>
-              <li>Click "Invite" and find your integration</li>
-              <li>Click "Invite"</li>
-            </ol>
+          <div className="space-y-2">
+            <Label htmlFor="databaseId">Database ID</Label>
+            <Input
+              id="databaseId"
+              value={formData.databaseId}
+              onChange={(e) => setFormData({ ...formData, databaseId: e.target.value })}
+              placeholder="xxxxx-xxxxx-xxxxx-xxxxx"
+              required
+            />
+            <div className="text-sm text-muted-foreground space-y-1">
+              <div>To get your database ID and share it:</div>
+              <ol className="list-decimal list-inside">
+                <li>Open your Notion database</li>
+                <li>Copy the ID from the URL (after the workspace name and before ?v=)</li>
+                <li>Click "Share" in the top right</li>
+                <li>Click "Invite" and find your integration</li>
+                <li>Click "Invite"</li>
+              </ol>
+            </div>
           </div>
-        </div>
 
-        {/* Column Names */}
-        <div className="space-y-2">
-          <Label htmlFor="timeColumn">Time Column Name</Label>
-          <Input
-            id="timeColumn"
-            value={formData.timeColumn}
-            onChange={(e) => setFormData({ ...formData, timeColumn: e.target.value })}
-            placeholder="Date"
-            required
-          />
-        </div>
+          {isValidatingNotion && (
+            <div className="text-sm text-muted-foreground">
+              Validating Notion access...
+            </div>
+          )}
 
-        <div className="space-y-2">
-          <Label htmlFor="activityColumn">Activity Column Name</Label>
-          <Input
-            id="activityColumn"
-            value={formData.activityColumn}
-            onChange={(e) => setFormData({ ...formData, activityColumn: e.target.value })}
-            placeholder="Activity"
-            required
-          />
-        </div>
+          {/* Column selection fields - only show when we have the schema */}
+          {databaseSchema && (
+            <div className="space-y-4">
+              {/* Date Column */}
+              <div className="space-y-2">
+                <Label htmlFor="dateColumn">Date Column</Label>
+                <Select
+                  value={formData.dateColumn}
+                  onValueChange={(value) => setFormData({ ...formData, dateColumn: value })}
+                >
+                  <SelectTrigger id="dateColumn">
+                    <SelectValue placeholder="Select date column" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(databaseSchema || {})
+                      .filter(([_, prop]) => 
+                        prop.type === 'date' || 
+                        prop.type === 'created_time' || 
+                        prop.type === 'last_edited_time'
+                      )
+                      .map(([key, prop]) => (
+                        <SelectItem key={key} value={key}>
+                          {key} ({prop.type})
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  Select the column containing the date for each entry
+                </p>
+              </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="propertyColumn">Property Column Name</Label>
-          <Input
-            id="propertyColumn"
-            value={formData.propertyColumn}
-            onChange={(e) => setFormData({ ...formData, propertyColumn: e.target.value })}
-            placeholder="Type"
-            required
-          />
+              {/* Time Column */}
+              <div className="space-y-2">
+                <Label htmlFor="timeColumn">Time/Duration Column</Label>
+                <Select
+                  value={formData.timeColumn}
+                  onValueChange={(value) => setFormData({ ...formData, timeColumn: value })}
+                >
+                  <SelectTrigger id="timeColumn">
+                    <SelectValue placeholder="Select time column" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(databaseSchema).map(([key, prop]) => (
+                      <SelectItem key={key} value={key}>
+                        {key} ({prop.type})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  Select the column containing the duration/hours value
+                </p>
+              </div>
+
+              {/* Property Column */}
+              <div className="space-y-2">
+                <Label htmlFor="propertyColumn">Activity Type Column</Label>
+                <Select
+                  value={formData.propertyColumn}
+                  onValueChange={(value) => setFormData({ ...formData, propertyColumn: value })}
+                >
+                  <SelectTrigger id="propertyColumn">
+                    <SelectValue placeholder="Select activity type column" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(databaseSchema)
+                      .filter(([_, prop]) => prop.type === 'select')
+                      .map(([key]) => (
+                        <SelectItem key={key} value={key}>
+                          {key}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  Select the column containing activity types
+                </p>
+              </div>
+
+              {/* Activity Filter */}
+              <div className="space-y-2">
+                <Label htmlFor="activityColumn">Activity Filter</Label>
+                <Input
+                  id="activityColumn"
+                  value={formData.activityColumn}
+                  onChange={(e) => setFormData({ ...formData, activityColumn: e.target.value })}
+                  placeholder="e.g., Exercise"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Enter the activity type to track (must match exactly)
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Appearance */}
@@ -384,6 +562,29 @@ export function CreateHeatmapForm() {
           </div>
         </div>
       </div>
+
+      {/* Show warning when Notion credentials are missing/invalid */}
+      {(!formData.notionApiKey || !formData.databaseId || !databaseSchema) && (
+        <div className="rounded-md bg-destructive/15 p-3">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <Icons.warning className="h-5 w-5 text-destructive" aria-hidden="true" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-destructive">
+                Notion Connection Required
+              </h3>
+              <div className="mt-2 text-sm text-destructive/90">
+                <p>
+                  {!formData.notionApiKey || !formData.databaseId
+                    ? "Please enter your Notion API key and database ID to continue."
+                    : "Unable to fetch database properties. Please verify your credentials."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Creating..." : "Create Heatmap"}
