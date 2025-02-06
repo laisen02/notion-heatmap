@@ -14,13 +14,17 @@ import type {
   GetUserResponse
 } from "@notionhq/client/build/src/api-endpoints"
 
-export const getNotionClient = (accessToken: string) => {
-  if (!accessToken) {
-    throw new Error('No access token provided')
+export const getNotionClient = (apiKey: string) => {
+  if (!apiKey) {
+    throw new Error('No API key provided')
+  }
+
+  if (!apiKey.startsWith('ntn_')) {
+    throw new Error('Invalid API key format - should start with "ntn_"')
   }
 
   return new Client({ 
-    auth: accessToken,
+    auth: apiKey,
     notionVersion: '2022-06-28'
   })
 }
@@ -79,12 +83,23 @@ export const getDatabases = cache(async (accessToken: string) => {
   }
 })
 
-export const getDatabaseSchema = cache(async (accessToken: string, databaseId: string) => {
-  const notion = getNotionClient(accessToken)
+export const getDatabaseSchema = cache(async (apiKey: string, databaseId: string) => {
+  console.log('Getting database schema with:', { 
+    apiKey: apiKey.substring(0, 8) + '...', 
+    databaseId 
+  })
+  
+  const notion = getNotionClient(apiKey)
   
   try {
+    console.log('Fetching database from Notion...')
     const response = await notion.databases.retrieve({
       database_id: databaseId
+    })
+    console.log('Database response:', {
+      object: response.object,
+      id: response.id,
+      propertyCount: Object.keys(response.properties).length
     })
     
     const properties = Object.entries(response.properties).reduce((acc, [key, prop]) => {
@@ -98,22 +113,35 @@ export const getDatabaseSchema = cache(async (accessToken: string, databaseId: s
 
     return properties
   } catch (error) {
-    console.error('Error fetching database schema:', error)
-    throw new Error('Failed to fetch database schema')
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    })
+    
+    if (error instanceof Error) {
+      if (error.message.includes('unauthorized')) {
+        throw new Error('Invalid Notion API key - make sure you have shared the database with your integration')
+      }
+      if (error.message.includes('Not Found')) {
+        throw new Error('Database not found - check your database ID and make sure it is shared with your integration')
+      }
+    }
+    throw new Error('Failed to fetch database schema: ' + (error.message || 'Unknown error'))
   }
 })
 
 export const getDatabaseContent = cache(async (
-  accessToken: string,
+  apiKey: string,
   databaseId: string,
   timeColumn: string,
   activityColumn: string
 ) => {
-  const notion = getNotionClient(accessToken)
+  const notion = getNotionClient(apiKey)
   
   try {
     // First, validate the columns exist and are of correct type
-    const schema = await getDatabaseSchema(accessToken, databaseId)
+    const schema = await getDatabaseSchema(apiKey, databaseId)
     validateColumnTypes(schema, timeColumn, activityColumn)
 
     const response = await notion.databases.query({
@@ -140,6 +168,14 @@ export const getDatabaseContent = cache(async (
       })
   } catch (error) {
     console.error('Error fetching database content:', error)
+    if (error instanceof Error) {
+      if (error.message.includes('unauthorized')) {
+        throw new Error('Invalid Notion API key')
+      }
+      if (error.message.includes('Not Found')) {
+        throw new Error('Database not found. Please check your database ID')
+      }
+    }
     throw new Error('Failed to fetch database content')
   }
 })

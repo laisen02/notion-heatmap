@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Button } from "@/components/ui/button"
@@ -16,18 +16,16 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { getDatabases, getDatabaseSchema, getDatabaseContent, getNotionClient } from "@/lib/notion"
-import { processNotionData, validateNotionData } from "@/lib/heatmap"
-import { DatabaseSelector } from "@/components/heatmap/database-selector"
-import { Icons } from "@/components/ui/icons"
-import { NotionDatabase } from "@/types/notion"
-import type { DatabaseObjectResponse, GetUserResponse } from "@notionhq/client/build/src/api-endpoints"
+import { getDatabaseSchema, getDatabaseContent, getNotionClient } from "@/lib/notion"
 
 interface FormData {
   name: string
   description: string
+  notionApiKey: string
+  databaseId: string
   timeColumn: string
   activityColumn: string
+  propertyColumn: string
   colorTheme: string
   weekStart: string
   isPublic: boolean
@@ -39,32 +37,18 @@ interface FormData {
   }
 }
 
-interface Property {
-  id: string
-  name: string
-  type: string
-}
-
-interface NotionConnection {
-  access_token: string
-  workspace_name?: string
-  workspace_icon?: string
-  workspace_id?: string
-  bot_id?: string
-}
-
 export function CreateHeatmapForm() {
   const router = useRouter()
   const supabase = createClientComponentClient()
   const [isLoading, setIsLoading] = useState(false)
-  const [databases, setDatabases] = useState<NotionDatabase[]>([])
-  const [properties, setProperties] = useState<Property[]>([])
-  const [selectedDb, setSelectedDb] = useState("")
   const [formData, setFormData] = useState<FormData>({
-    name: "activity",
+    name: "",
     description: "",
+    notionApiKey: "",
+    databaseId: "",
     timeColumn: "",
     activityColumn: "",
+    propertyColumn: "",
     colorTheme: "orange",
     weekStart: "monday",
     isPublic: true,
@@ -75,226 +59,83 @@ export function CreateHeatmapForm() {
       standardDeviation: false
     }
   })
-  const [previewData, setPreviewData] = useState<any>(null)
-
-  const handleNotionConnect = async () => {
-    try {
-      setIsLoading(true)
-      
-      // Clear any existing connection first
-      await supabase
-        .from('notion_connections')
-        .delete()
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-
-      // Reset states
-      setDatabases([])
-      setProperties([])
-      setSelectedDb('')
-
-      // Redirect to OAuth endpoint
-      window.location.href = '/api/notion/oauth'
-    } catch (error) {
-      console.error('Connection error:', error)
-      toast.error('Failed to connect to Notion')
-      setIsLoading(false)
-    }
-  }
-
-  // Check for OAuth response
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search)
-    if (searchParams.get('connected') === 'true') {
-      toast.success('Successfully connected to Notion')
-      // Fetch databases after successful connection
-      fetchDatabases()
-    } else if (searchParams.get('error')) {
-      toast.error('Failed to connect to Notion')
-    }
-  }, [])
-
-  const verifyConnection = async (connection: NotionConnection) => {
-    try {
-      const notion = getNotionClient(connection.access_token)
-      const user = await notion.users.me<GetUserResponse>({})
-      const userName = user.name || 'Unknown User'
-      console.log('Connection verified:', userName)
-      return true
-    } catch (error) {
-      console.error('Connection test error:', error)
-      return false
-    }
-  }
-
-  const fetchDatabases = async () => {
-    try {
-      setIsLoading(true)
-      const { data: connection, error: connectionError } = await supabase
-        .from('notion_connections')
-        .select('*')
-        .single()
-
-      if (connectionError) {
-        console.error('Error fetching connection:', connectionError)
-        throw new Error(`Failed to fetch Notion connection: ${connectionError.message}`)
-      }
-
-      if (!connection) {
-        throw new Error('No Notion connection found. Please connect to Notion first.')
-      }
-
-      if (!connection.access_token) {
-        // Clear invalid connection
-        await supabase
-          .from('notion_connections')
-          .delete()
-          .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-        throw new Error('Invalid Notion connection. Please reconnect to Notion.')
-      }
-
-      // Verify connection before proceeding
-      const isConnected = await verifyConnection(connection)
-      if (!isConnected) {
-        throw new Error('Unable to connect to Notion API. Please reconnect to Notion.')
-      }
-
-      console.log('Fetching databases with token:', connection.access_token.substring(0, 10) + '...')
-      const dbs = await getDatabases(connection.access_token)
-      
-      if (!dbs.length) {
-        toast.warning('No databases found. Make sure you have shared databases with this integration.')
-        return
-      }
-
-      setDatabases(dbs)
-    } catch (error) {
-      console.error('Error in fetchDatabases:', error)
-      if (error instanceof Error) {
-        // Show the exact error message to help with debugging
-        toast.error(error.message)
-        
-        if (error.message.includes('Invalid') || error.message.includes('unauthorized')) {
-          // Clear the invalid connection
-          await supabase
-            .from('notion_connections')
-            .delete()
-            .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-          // Reset state
-          setDatabases([])
-          setProperties([])
-          setSelectedDb('')
-        }
-      } else {
-        toast.error('Failed to fetch Notion databases')
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleDatabaseSelect = async (dbId: string) => {
-    try {
-      setIsLoading(true)
-      setSelectedDb(dbId)
-      
-      const { data: connection, error: connectionError } = await supabase
-        .from('notion_connections')
-        .select()
-        .single()
-
-      if (connectionError) {
-        console.error('Error fetching connection:', connectionError)
-        throw new Error('Failed to fetch Notion connection')
-      }
-
-      if (!connection) {
-        throw new Error('No Notion connection found')
-      }
-
-      const schema = await getDatabaseSchema(connection.access_token, dbId)
-      // Update the property mapping to match the new types
-      setProperties(Object.entries(schema).map(([id, prop]) => ({
-        id,
-        name: prop.name,
-        type: prop.type
-      })))
-    } catch (error) {
-      console.error('Error in handleDatabaseSelect:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to fetch database schema')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handlePreview = async () => {
-    try {
-      setIsLoading(true)
-      const { data: connection } = await supabase
-        .from('notion_connections')
-        .select()
-        .single()
-
-      if (!connection) {
-        throw new Error('No Notion connection found')
-      }
-
-      const data = await getDatabaseContent(
-        connection.access_token,
-        selectedDb,
-        formData.timeColumn,
-        formData.activityColumn
-      )
-
-      if (!validateNotionData(data, formData.timeColumn, formData.activityColumn)) {
-        throw new Error('Invalid data format')
-      }
-
-      const processedData = processNotionData(
-        data,
-        formData.timeColumn,
-        formData.activityColumn
-      )
-      setPreviewData(processedData)
-    } catch (error) {
-      toast.error('Failed to load preview')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      // Validate form data
-      if (!selectedDb || !formData.timeColumn || !formData.activityColumn) {
-        throw new Error('Please select a database and columns')
+      // Check if user is authenticated
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      
+      if (authError || !user) {
+        toast.error('Please sign in to create a heatmap')
+        router.push('/auth')
+        return
       }
 
-      // Create heatmap in Supabase
-      const { data: heatmap, error } = await supabase
+      // Validate Notion access first
+      const validateResponse = await fetch('/api/notion/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          apiKey: formData.notionApiKey,
+          databaseId: formData.databaseId,
+        }),
+      })
+
+      if (!validateResponse.ok) {
+        const error = await validateResponse.json()
+        throw new Error(error.error || 'Failed to validate Notion access')
+      }
+
+      const { database } = await validateResponse.json()
+      console.log('Database validated:', database)
+
+      // Store configuration in Supabase
+      const { data: heatmap, error: insertError } = await supabase
         .from('heatmaps')
         .insert({
           name: formData.name,
           description: formData.description,
-          database_id: selectedDb,
+          notion_api_key: formData.notionApiKey,
+          database_id: formData.databaseId,
           time_column: formData.timeColumn,
           activity_column: formData.activityColumn,
+          property_column: formData.propertyColumn,
           color_theme: formData.colorTheme,
           week_start: formData.weekStart,
           is_public: formData.isPublic,
-          insights: formData.insights
+          insights: formData.insights,
+          user_id: user.id,
+          display_order: 0 // Add this if your table requires it
         })
         .select()
         .single()
 
-      if (error) throw error
+      if (insertError) {
+        console.error('Supabase insert error:', insertError)
+        if (insertError.code === '23503') { // Foreign key violation
+          toast.error('Please sign in to create a heatmap')
+          return
+        }
+        if (insertError.code === '23505') { // Unique violation
+          toast.error('You already have a heatmap with this name')
+          return
+        }
+        throw insertError
+      }
+
+      if (!heatmap) {
+        throw new Error('Failed to create heatmap - no data returned')
+      }
 
       toast.success('Heatmap created successfully')
       router.push(`/dashboard`)
     } catch (error) {
-      console.error('Error creating heatmap:', error)
+      console.error('Error:', error)
       if (error instanceof Error) {
         toast.error(error.message)
       } else {
@@ -307,282 +148,246 @@ export function CreateHeatmapForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="space-y-6">
-        {/* Step 1: Connect to Notion */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">1. Connect to Notion</h3>
-            {databases.length > 0 && (
-              <span className="text-sm text-green-600">✓ Connected</span>
-            )}
-          </div>
-          
-          <Button
-            type="button"
-            onClick={handleNotionConnect}
-            disabled={isLoading}
-            className="w-full"
-          >
-            {isLoading ? (
-              <>
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                Connecting...
-              </>
-            ) : (
-              <>
-                <Icons.notion className="mr-2 h-4 w-4" />
-                {databases.length === 0 ? "Connect to Notion" : "Reconnect to Notion"}
-              </>
-            )}
-          </Button>
+      <div className="space-y-4">
+        {/* Basic Info */}
+        <div className="space-y-2">
+          <Label htmlFor="name">Heatmap Name</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="My Activity Heatmap"
+            required
+          />
         </div>
 
-        {/* Step 2: Select Database and Properties */}
-        {databases.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">2. Configure Data Source</h3>
-            
-            <div className="space-y-2">
-              <Label>Select Database</Label>
-              <DatabaseSelector
-                databases={databases}
-                onSelect={handleDatabaseSelect}
-                isLoading={isLoading}
-              />
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="Track my daily activities..."
+          />
+        </div>
 
-            {properties.length > 0 && (
-              <>
-                <div className="space-y-2">
-                  <Label>Time Column</Label>
-                  <Select
-                    value={formData.timeColumn}
-                    onValueChange={(value) => setFormData({ ...formData, timeColumn: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select time column" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {properties
-                        .filter((prop) => [
-                          'date',
-                          'created_time',
-                          'last_edited_time',
-                          'formula'
-                        ].includes(prop.type))
-                        .map((prop) => (
-                          <SelectItem key={prop.id} value={prop.id}>
-                            {prop.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-sm text-muted-foreground">
-                    Choose the column that contains your activity timestamps
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Activity Column</Label>
-                  <Select
-                    value={formData.activityColumn}
-                    onValueChange={(value) => setFormData({ ...formData, activityColumn: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select activity column" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {properties
-                        .filter((prop) => [
-                          'title',
-                          'rich_text',
-                          'select',
-                          'multi_select'
-                        ].includes(prop.type))
-                        .map((prop) => (
-                          <SelectItem key={prop.id} value={prop.id}>
-                            {prop.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-sm text-muted-foreground">
-                    Choose the column that contains your activity names
-                  </p>
-                </div>
-              </>
-            )}
+        {/* Notion Settings */}
+        <div className="space-y-2">
+          <Label htmlFor="notionApiKey">Notion API Key</Label>
+          <Input
+            id="notionApiKey"
+            type="password"
+            value={formData.notionApiKey}
+            onChange={(e) => setFormData({ ...formData, notionApiKey: e.target.value })}
+            placeholder="ntn_xxxxxxxx..."
+            required
+          />
+          <div className="text-sm text-muted-foreground space-y-1">
+            <div>To get your API key:</div>
+            <ol className="list-decimal list-inside">
+              <li>Go to <a 
+                href="https://www.notion.so/my-integrations" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Notion Integrations
+              </a></li>
+              <li>Click "New integration"</li>
+              <li>Name it "Notion Heatmap"</li>
+              <li>Select your workspace</li>
+              <li>Under "Capabilities", enable:
+                <ul className="list-disc list-inside ml-4">
+                  <li>Read content</li>
+                  <li>Read databases</li>
+                </ul>
+              </li>
+              <li>Copy the "Internal Integration Token" (starts with ntn_)</li>
+            </ol>
           </div>
-        )}
+        </div>
 
-        {/* Step 3: Heatmap Settings */}
-        {selectedDb && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">3. Heatmap Settings</h3>
+        <div className="space-y-2">
+          <Label htmlFor="databaseId">Database ID</Label>
+          <Input
+            id="databaseId"
+            value={formData.databaseId}
+            onChange={(e) => setFormData({ ...formData, databaseId: e.target.value })}
+            placeholder="xxxxx-xxxxx-xxxxx-xxxxx"
+            required
+          />
+          <div className="text-sm text-muted-foreground space-y-1">
+            <div>To get your database ID and share it:</div>
+            <ol className="list-decimal list-inside">
+              <li>Open your Notion database</li>
+              <li>Copy the ID from the URL (after the workspace name and before ?v=)</li>
+              <li>Click "Share" in the top right</li>
+              <li>Click "Invite" and find your integration</li>
+              <li>Click "Invite"</li>
+            </ol>
+          </div>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Heatmap Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Activity Heatmap"
-                required
+        {/* Column Names */}
+        <div className="space-y-2">
+          <Label htmlFor="timeColumn">Time Column Name</Label>
+          <Input
+            id="timeColumn"
+            value={formData.timeColumn}
+            onChange={(e) => setFormData({ ...formData, timeColumn: e.target.value })}
+            placeholder="Date"
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="activityColumn">Activity Column Name</Label>
+          <Input
+            id="activityColumn"
+            value={formData.activityColumn}
+            onChange={(e) => setFormData({ ...formData, activityColumn: e.target.value })}
+            placeholder="Activity"
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="propertyColumn">Property Column Name</Label>
+          <Input
+            id="propertyColumn"
+            value={formData.propertyColumn}
+            onChange={(e) => setFormData({ ...formData, propertyColumn: e.target.value })}
+            placeholder="Type"
+            required
+          />
+        </div>
+
+        {/* Appearance */}
+        <div className="space-y-2">
+          <Label>Color Theme</Label>
+          <Select
+            value={formData.colorTheme}
+            onValueChange={(value) => setFormData({ ...formData, colorTheme: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select color theme" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="orange">Orange</SelectItem>
+              <SelectItem value="green">Green</SelectItem>
+              <SelectItem value="blue">Blue</SelectItem>
+              <SelectItem value="purple">Purple</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Week Starts On</Label>
+          <Select
+            value={formData.weekStart}
+            onValueChange={(value) => setFormData({ ...formData, weekStart: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select week start" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="monday">Monday</SelectItem>
+              <SelectItem value="sunday">Sunday</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Insights */}
+        <div className="space-y-4">
+          <Label>Insights</Label>
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="averageTime"
+                checked={formData.insights.averageTime}
+                onCheckedChange={(checked) => 
+                  setFormData({
+                    ...formData,
+                    insights: { ...formData.insights, averageTime: checked as boolean }
+                  })
+                }
               />
+              <label htmlFor="averageTime" className="text-sm">
+                Average Time Per Active Day
+              </label>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Track my daily activities..."
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="totalDays"
+                checked={formData.insights.totalDays}
+                onCheckedChange={(checked) => 
+                  setFormData({
+                    ...formData,
+                    insights: { ...formData.insights, totalDays: checked as boolean }
+                  })
+                }
               />
+              <label htmlFor="totalDays" className="text-sm">
+                Total Days Active
+              </label>
             </div>
 
-            <div className="space-y-2">
-              <Label>Color Theme</Label>
-              <Select
-                value={formData.colorTheme}
-                onValueChange={(value) => setFormData({ ...formData, colorTheme: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select color theme" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="orange">Orange</SelectItem>
-                  <SelectItem value="green">Green</SelectItem>
-                  <SelectItem value="blue">Blue</SelectItem>
-                  <SelectItem value="purple">Purple</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="totalTime"
+                checked={formData.insights.totalTime}
+                onCheckedChange={(checked) => 
+                  setFormData({
+                    ...formData,
+                    insights: { ...formData.insights, totalTime: checked as boolean }
+                  })
+                }
+              />
+              <label htmlFor="totalTime" className="text-sm">
+                Total Time
+              </label>
             </div>
 
-            <div className="space-y-2">
-              <Label>Week Starts On</Label>
-              <Select
-                value={formData.weekStart}
-                onValueChange={(value) => setFormData({ ...formData, weekStart: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select week start" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="monday">Monday</SelectItem>
-                  <SelectItem value="sunday">Sunday</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-4">
-              <Label>Insights</Label>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="averageTime"
-                    checked={formData.insights.averageTime}
-                    onCheckedChange={(checked) => 
-                      setFormData({
-                        ...formData,
-                        insights: { ...formData.insights, averageTime: checked as boolean }
-                      })
-                    }
-                  />
-                  <label htmlFor="averageTime" className="text-sm">
-                    Average Time Per Active Day
-                  </label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="totalDays"
-                    checked={formData.insights.totalDays}
-                    onCheckedChange={(checked) => 
-                      setFormData({
-                        ...formData,
-                        insights: { ...formData.insights, totalDays: checked as boolean }
-                      })
-                    }
-                  />
-                  <label htmlFor="totalDays" className="text-sm">
-                    Total Days Active
-                  </label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="totalTime"
-                    checked={formData.insights.totalTime}
-                    onCheckedChange={(checked) => 
-                      setFormData({
-                        ...formData,
-                        insights: { ...formData.insights, totalTime: checked as boolean }
-                      })
-                    }
-                  />
-                  <label htmlFor="totalTime" className="text-sm">
-                    Total Time
-                  </label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="standardDeviation"
-                    checked={formData.insights.standardDeviation}
-                    onCheckedChange={(checked) => 
-                      setFormData({
-                        ...formData,
-                        insights: { ...formData.insights, standardDeviation: checked as boolean }
-                      })
-                    }
-                  />
-                  <label htmlFor="standardDeviation" className="text-sm">
-                    Standard Deviation
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Privacy</Label>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="isPublic"
-                  checked={formData.isPublic}
-                  onCheckedChange={(checked) => 
-                    setFormData({ ...formData, isPublic: checked as boolean })
-                  }
-                />
-                <label htmlFor="isPublic" className="text-sm">
-                  Make this heatmap public
-                </label>
-              </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="standardDeviation"
+                checked={formData.insights.standardDeviation}
+                onCheckedChange={(checked) => 
+                  setFormData({
+                    ...formData,
+                    insights: { ...formData.insights, standardDeviation: checked as boolean }
+                  })
+                }
+              />
+              <label htmlFor="standardDeviation" className="text-sm">
+                Standard Deviation
+              </label>
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Privacy */}
+        <div className="space-y-2">
+          <Label>Privacy</Label>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="isPublic"
+              checked={formData.isPublic}
+              onCheckedChange={(checked) => 
+                setFormData({ ...formData, isPublic: checked as boolean })
+              }
+            />
+            <label htmlFor="isPublic" className="text-sm">
+              Make this heatmap public
+            </label>
+          </div>
+        </div>
       </div>
 
-      {/* Preview and Submit Buttons */}
-      {selectedDb && (
-        <div className="flex space-x-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handlePreview}
-            disabled={isLoading || !formData.timeColumn || !formData.activityColumn}
-          >
-            Preview Heatmap
-          </Button>
-
-          <Button 
-            type="submit" 
-            disabled={isLoading || !formData.timeColumn || !formData.activityColumn}
-          >
-            Create Heatmap
-          </Button>
-        </div>
-      )}
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? "Creating..." : "Create Heatmap"}
+      </Button>
     </form>
   )
 } 
