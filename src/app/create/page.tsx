@@ -1,3 +1,5 @@
+import { CreateHeatmapForm } from "@/components/heatmap/create-form"
+
 export default function CreatePage() {
   return (
     <div className="container py-8">
@@ -7,17 +9,8 @@ export default function CreatePage() {
           Connect your Notion database and customize your heatmap display.
         </p>
         
-        <div className="mt-8 rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">
-            Form will be implemented here with:
-          </p>
-          <ul className="mt-2 list-disc pl-6 text-sm text-muted-foreground">
-            <li>Notion API connection</li>
-            <li>Database selection</li>
-            <li>Column mapping</li>
-            <li>Color customization</li>
-            <li>Display preferences</li>
-          </ul>
+        <div className="mt-8">
+          <CreateHeatmapForm />
         </div>
       </div>
     </div>

@@ -134,13 +134,40 @@
 - Added loading states and disabled states during authentication
 - Added form validation for email and password
 
+### Heatmap Creation Implementation (2025-02-05 18:00)
+- Created Notion API integration utilities:
+  - Database fetching
+  - Schema retrieval
+  - Data mapping
+- Implemented heatmap creation form:
+  - Notion database selection
+  - Column mapping
+  - Color theme selection
+  - Week start preference
+- Added Select component for dropdown menus
+- Set up form validation and error handling
+
+### Notion OAuth Implementation (2025-02-05 18:30)
+- Created Notion OAuth endpoints:
+  - OAuth initiation endpoint
+  - Callback handler
+  - Token exchange and storage
+- Added database tables for OAuth:
+  - notion_oauth_states for CSRF protection
+  - notion_connections for storing access tokens
+- Implemented secure token storage with RLS
+- Updated create form to use OAuth flow
+- Added environment variables for Notion integration
+
 ## Next Steps
 - [x] Set up Supabase database schema
 - [x] Implement authentication system
 - [x] Create basic routing structure
-- [ ] Implement UI components for heatmap creation
-- [ ] Add form validation and error handling
-- [ ] Implement Notion API integration
+- [x] Implement UI components for heatmap creation
+- [x] Implement Notion OAuth integration
+- [ ] Create heatmap visualization component
+- [ ] Add data fetching and processing
+- [ ] Implement embed link generation
 
 ---
 Note: This log will be updated as development progresses. Each update will include a timestamp and description of changes made. 
