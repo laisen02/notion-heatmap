@@ -189,6 +189,43 @@
 - Updated Notion OAuth scopes for database access
 - Added Notion branding and icons
 
+### Heatmap Visualization Enhancement (2025-02-07)
+- Expanded color theme options:
+  - Added new themes: yellow, pink, red, brown, gray, light gray
+  - Improved dark mode color variants for all themes
+  - Added hover effects for color preview
+- Improved heatmap grid layout:
+  - Fixed month labels positioning
+  - Added proper day labels (Mon, Wed, Fri, Sun)
+  - Implemented correct 365-day cell grid arrangement
+  - Fixed cell positioning for year start
+
+### UI/UX Improvements (2025-02-07)
+- Enhanced mobile responsiveness:
+  - Optimized header layout for small screens
+  - Improved dropdown menu widths
+  - Better insight stats display on mobile
+- Added dark mode support:
+  - Proper color transitions
+  - Dark mode compatible backgrounds
+  - Improved text contrast
+- Enhanced create form UX:
+  - Converted color selection to dropdown
+  - Improved Notion connection instructions
+  - Better error message positioning
+  - Updated public sharing description
+
+### Embed Functionality (2025-02-07)
+- Implemented embed system:
+  - Added embed route with special layout
+  - Configured CORS and security headers
+  - Added transparent background support
+  - Created embed code generation
+- Added Notion embed support:
+  - Configured frame-ancestors policy
+  - Added proper iframe attributes
+  - Implemented embed-specific view
+
 ## Next Steps
 - [x] Set up Supabase database schema
 - [x] Implement authentication system
