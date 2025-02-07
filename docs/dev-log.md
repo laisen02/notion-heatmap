@@ -226,6 +226,70 @@
   - Added proper iframe attributes
   - Implemented embed-specific view
 
+### Activity Types Support (2025-02-08)
+- Added support for different activity tracking types:
+  - Large time blocks:
+    - Exercise (workout, running, gym)
+    - Entertainment (movies, games)
+    - Reading (books, articles)
+    - Note-taking (study, research)
+  - Small time blocks:
+    - SaaS Development
+    - Content Creation
+    - Flight Time
+
+### Property Type Handling (2025-02-08)
+- Enhanced Notion property type support:
+  - Title properties
+  - Rich text properties
+  - Select properties
+  - Multi-select properties
+- Improved property matching:
+  - Case-insensitive matching
+  - Exact text matching for titles
+  - Option matching for selects
+  - Contains matching for multi-selects
+
+### Data Processing Improvements (2025-02-08)
+- Enhanced time calculation:
+  - Proper handling of formula fields
+  - Support for number fields
+  - Automatic unit conversion
+- Improved data aggregation:
+  - Daily value summation
+  - Proper date handling
+  - Time zone consideration
+
+### Bug Fixes & Improvements (2025-02-08)
+- Fixed property type handling issues:
+  - Added robust error handling for property type retrieval
+  - Fixed issue with non-select property types after browser restart
+  - Added detailed error messages for property type failures
+  - Improved property existence validation
+- Enhanced debugging:
+  - Added property info logging
+  - Added query response logging
+  - Improved error message clarity
+- Supported property types:
+  - Title properties now work consistently
+  - Rich text properties properly maintained
+  - Select options working as expected
+  - Multi-select handling improved
+
+### Try Created Heatmap Activity Types With
+Top Level Record:
+- Exercise (workout, running, gym)
+- Entertainment (movies, games)
+- Read Book (reading sessions)
+- Note (study sessions)
+
+Second level record:
+- saas (development work)
+- creator (content creation)
+- fly 
+
+Note: All activity types work with any Notion property type (title, rich_text, select, multi_select)
+
 ## Next Steps
 - [x] Set up Supabase database schema
 - [x] Implement authentication system

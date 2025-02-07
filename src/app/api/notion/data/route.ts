@@ -20,12 +20,32 @@ export async function POST(req: Request) {
 
     const notion = getNotionClient(config.notion_api_key)
 
-    // First get the property type
-    const database = await notion.databases.retrieve({
-      database_id: config.database_id
-    })
+    // First get the property type with error handling
+    let propertyType: string
+    try {
+      const database = await notion.databases.retrieve({
+        database_id: config.database_id
+      })
 
-    const propertyType = database.properties[config.property_column]?.type
+      const property = database.properties[config.property_column]
+      if (!property) {
+        throw new Error(`Property column "${config.property_column}" not found`)
+      }
+      propertyType = property.type
+
+      // Debug log
+      console.log('Property info:', {
+        columnName: config.property_column,
+        type: propertyType,
+        property
+      })
+    } catch (error) {
+      console.error('Error getting property type:', error)
+      return NextResponse.json(
+        { error: `Failed to get property type: ${error.message}` },
+        { status: 500 }
+      )
+    }
 
     // Build the appropriate filter based on property type
     let propertyFilter: any
@@ -88,9 +108,16 @@ export async function POST(req: Request) {
               },
             },
           },
-          propertyFilter // Add the property-type specific filter
+          propertyFilter
         ],
       },
+    })
+
+    // Debug log
+    console.log('Query response:', {
+      resultCount: response.results.length,
+      filter: propertyFilter,
+      firstResult: response.results[0]?.properties
     })
 
     // Process the results
@@ -134,7 +161,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('Error fetching data:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch data' },
+      { error: `Failed to fetch heatmap data: ${error.message}` },
       { status: 500 }
     )
   }
