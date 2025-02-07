@@ -1,150 +1,140 @@
 import { NextResponse } from "next/server"
-import { Client } from "@notionhq/client"
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { getNotionClient } from "@/lib/notion"
+import { getSupabaseClient } from "@/lib/server-utils"
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { heatmapId } = await request.json()
-    
-    // Get heatmap config from Supabase
-    const supabase = createServerComponentClient({ cookies })
-    const { data: heatmap, error: configError } = await supabase
+    const { heatmapId } = await req.json()
+    const supabase = await getSupabaseClient()
+
+    // Get heatmap config
+    const { data: config } = await supabase
       .from('heatmaps')
       .select('*')
       .eq('id', heatmapId)
       .single()
 
-    if (configError || !heatmap) {
-      return NextResponse.json(
-        { error: 'Heatmap not found' },
-        { status: 404 }
-      )
+    if (!config) {
+      return NextResponse.json({ error: 'Heatmap not found' }, { status: 404 })
     }
 
-    // Initialize Notion client
-    const notion = new Client({
-      auth: heatmap.notion_api_key,
-      notionVersion: '2022-06-28'
+    const notion = getNotionClient(config.notion_api_key)
+
+    // First get the property type
+    const database = await notion.databases.retrieve({
+      database_id: config.database_id
     })
 
-    // Fetch all pages with pagination
-    let allResults: any[] = []
-    let hasMore = true
-    let startCursor: string | undefined = undefined
+    const propertyType = database.properties[config.property_column]?.type
 
-    while (hasMore) {
-      const response = await notion.databases.query({
-        database_id: heatmap.database_id,
-        start_cursor: startCursor,
-        page_size: 100,
-        filter: {
-          property: heatmap.property_column,
+    // Build the appropriate filter based on property type
+    let propertyFilter: any
+    switch (propertyType) {
+      case 'title':
+        propertyFilter = {
+          property: config.property_column,
+          title: {
+            equals: config.activity_column
+          }
+        }
+        break
+      case 'rich_text':
+        propertyFilter = {
+          property: config.property_column,
+          rich_text: {
+            equals: config.activity_column
+          }
+        }
+        break
+      case 'select':
+        propertyFilter = {
+          property: config.property_column,
           select: {
-            equals: heatmap.activity_column
+            equals: config.activity_column
           }
         }
-      })
-
-      allResults = [...allResults, ...response.results]
-      hasMore = response.has_more
-      startCursor = response.next_cursor || undefined
+        break
+      case 'multi_select':
+        propertyFilter = {
+          property: config.property_column,
+          multi_select: {
+            contains: config.activity_column
+          }
+        }
+        break
+      default:
+        return NextResponse.json(
+          { error: `Unsupported property type: ${propertyType}` },
+          { status: 400 }
+        )
     }
 
-    console.log('Notion response:', {
-      totalResults: allResults.length,
-      firstResult: allResults[0]?.properties,
-      dateColumn: heatmap.date_column,
-      timeColumn: heatmap.time_column,
-      propertyColumn: heatmap.property_column,
-      activityFilter: heatmap.activity_column
+    // Query the database with the appropriate filter
+    const response = await notion.databases.query({
+      database_id: config.database_id,
+      filter: {
+        and: [
+          {
+            property: config.date_column,
+            date: {
+              is_not_empty: true,
+            },
+          },
+          {
+            property: config.time_column,
+            formula: {
+              number: {
+                is_not_empty: true,
+              },
+            },
+          },
+          propertyFilter // Add the property-type specific filter
+        ],
+      },
     })
 
-    // Process all results
-    const data = allResults
-      .map((page: any) => {
-        if (!('properties' in page)) {
-          console.warn('Page missing properties:', page.id)
-          return null
-        }
+    // Process the results
+    const data = response.results.map((page: any) => {
+      const dateProperty = page.properties[config.date_column]
+      const timeProperty = page.properties[config.time_column]
 
-        const dateProperty = page.properties[heatmap.date_column]
-        const timeProperty = page.properties[heatmap.time_column]
+      // Extract date
+      const date = dateProperty?.date?.start
 
-        if (!dateProperty || !timeProperty) {
-          console.warn('Missing required properties:', {
-            pageId: page.id,
-            hasDate: !!dateProperty,
-            hasTime: !!timeProperty,
-            dateColumn: heatmap.date_column,
-            timeColumn: heatmap.time_column,
-            availableColumns: Object.keys(page.properties)
-          })
-          return null
-        }
-
-        let date: string | null = null
-        let value = 0
-
-        // Extract date based on property type
-        if (dateProperty.type === 'date' && dateProperty.date?.start) {
-          date = dateProperty.date.start.split('T')[0]
-        } else if (dateProperty.type === 'created_time') {
-          date = dateProperty.created_time.split('T')[0]
-        } else if (dateProperty.type === 'last_edited_time') {
-          date = dateProperty.last_edited_time.split('T')[0]
-        } else if (dateProperty.type === 'rich_text' && dateProperty.rich_text?.[0]) {
-          const parsedDate = new Date(dateProperty.rich_text[0].plain_text)
-          if (!isNaN(parsedDate.getTime())) {
-            date = parsedDate.toISOString().split('T')[0]
-          }
-        }
-
-        // Extract value based on property type
-        if (timeProperty.type === 'number') {
-          value = timeProperty.number || 0
-        } else if (timeProperty.type === 'formula' && timeProperty.formula?.type === 'number') {
-          value = timeProperty.formula.number || 0
-        } else if (timeProperty.type === 'rich_text' && timeProperty.rich_text?.[0]) {
-          value = parseFloat(timeProperty.rich_text[0].plain_text) || 0
-        } else if (timeProperty.type === 'date' && timeProperty.date?.start) {
-          // If time column is a date, calculate duration in hours
-          const start = new Date(timeProperty.date.start)
-          const end = timeProperty.date.end ? new Date(timeProperty.date.end) : start
-          value = (end.getTime() - start.getTime()) / (1000 * 60 * 60) // Convert ms to hours
-        }
-
-        return date && !isNaN(value) ? { date, value } : null
-      })
-      .filter((item): item is { date: string; value: number } => item !== null)
-
-    // Group by date to sum hours
-    const groupedData = data.reduce((acc: any[], item) => {
-      const existingItem = acc.find(x => x.date === item.date)
-      
-      if (existingItem) {
-        existingItem.value += item.value
-      } else {
-        acc.push({ ...item })
+      // Extract time value
+      let time = 0
+      if (timeProperty?.type === 'formula') {
+        time = timeProperty.formula.number || 0
+      } else if (timeProperty?.type === 'number') {
+        time = timeProperty.number || 0
       }
-      
+
+      return {
+        date,
+        value: time
+      }
+    }).filter(item => item.date)
+
+    // Group by date and sum values
+    const groupedData = data.reduce((acc: Record<string, number>, curr) => {
+      const date = curr.date.split('T')[0]
+      acc[date] = (acc[date] || 0) + curr.value
       return acc
-    }, [])
+    }, {})
 
-    // Sort by date
-    groupedData.sort((a, b) => a.date.localeCompare(b.date))
+    // Convert to array format and sort by date
+    const formattedData = Object.entries(groupedData)
+      .map(([date, value]) => ({
+        date,
+        value
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date))
 
-    console.log('Processed data:', {
-      totalItems: groupedData.length,
-      firstItem: groupedData[0],
-      totalHours: groupedData.reduce((sum, item) => sum + item.value, 0)
-    })
-
-    return NextResponse.json({ data: groupedData })
+    return NextResponse.json({ data: formattedData })
   } catch (error) {
-    console.error('Error fetching Notion data:', error)
+    console.error('Error fetching data:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to fetch data' },
+      { error: 'Failed to fetch data' },
       { status: 500 }
     )
   }
