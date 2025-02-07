@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Command,
   CreditCard,
+  Edit,
   File,
   FileText,
   HelpCircle,
@@ -54,4 +55,5 @@ export const Icons = {
   refresh: RefreshCw,
   twitter: Twitter,
   check: Check,
+  edit: Edit,
 } 

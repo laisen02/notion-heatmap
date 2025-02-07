@@ -28,28 +28,40 @@ export async function POST(request: Request) {
       notionVersion: '2022-06-28'
     })
 
-    // Query the database with filter for the specific activity
-    const response = await notion.databases.query({
-      database_id: heatmap.database_id,
-      filter: {
-        property: heatmap.property_column,
-        select: {
-          equals: heatmap.activity_column
+    // Fetch all pages with pagination
+    let allResults: any[] = []
+    let hasMore = true
+    let startCursor: string | undefined = undefined
+
+    while (hasMore) {
+      const response = await notion.databases.query({
+        database_id: heatmap.database_id,
+        start_cursor: startCursor,
+        page_size: 100,
+        filter: {
+          property: heatmap.property_column,
+          select: {
+            equals: heatmap.activity_column
+          }
         }
-      }
-    })
+      })
+
+      allResults = [...allResults, ...response.results]
+      hasMore = response.has_more
+      startCursor = response.next_cursor || undefined
+    }
 
     console.log('Notion response:', {
-      results: response.results.length,
-      firstResult: response.results[0]?.properties,
+      totalResults: allResults.length,
+      firstResult: allResults[0]?.properties,
       dateColumn: heatmap.date_column,
       timeColumn: heatmap.time_column,
       propertyColumn: heatmap.property_column,
       activityFilter: heatmap.activity_column
     })
 
-    // Process the results
-    const data = response.results
+    // Process all results
+    const data = allResults
       .map((page: any) => {
         if (!('properties' in page)) {
           console.warn('Page missing properties:', page.id)
@@ -101,21 +113,6 @@ export async function POST(request: Request) {
           const end = timeProperty.date.end ? new Date(timeProperty.date.end) : start
           value = (end.getTime() - start.getTime()) / (1000 * 60 * 60) // Convert ms to hours
         }
-
-        // Debug logging
-        console.log('Processing entry:', {
-          pageId: page.id,
-          date,
-          value,
-          dateProperty: {
-            type: dateProperty.type,
-            value: dateProperty.date?.start || dateProperty.created_time || dateProperty.last_edited_time
-          },
-          timeProperty: {
-            type: timeProperty.type,
-            value: timeProperty.number || timeProperty.formula?.number || timeProperty.date?.start
-          }
-        })
 
         return date && !isNaN(value) ? { date, value } : null
       })

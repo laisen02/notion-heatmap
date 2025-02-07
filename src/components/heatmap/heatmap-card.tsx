@@ -8,7 +8,7 @@ import { HeatmapGrid } from "./heatmap-grid"
 import { HeatmapConfig, HeatmapData } from "@/types/heatmap"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Icons } from "@/components/ui/icons"
+import { Icons } from "@/components/icons"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import {
@@ -122,13 +122,16 @@ export function HeatmapCard({ config, data: initialData }: HeatmapCardProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link href={`/edit/${config.id}`}>
+                  <Link 
+                    href={`/edit/${config.id}`}
+                    className="flex items-center"
+                  >
                     <Icons.edit className="mr-2 h-4 w-4" />
                     Edit
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="text-destructive"
+                  className="text-destructive focus:text-destructive"
                   onSelect={() => setShowDeleteAlert(true)}
                 >
                   <Icons.trash className="mr-2 h-4 w-4" />
