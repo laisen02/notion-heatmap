@@ -18,19 +18,21 @@ import {
 import { toast } from "sonner"
 import { getDatabaseSchema, getDatabaseContent, getNotionClient } from "@/lib/notion"
 import { Icons } from "@/components/icons"
+import { ColorTheme } from "@/types/heatmap"
+import { cn } from "@/lib/utils"
 
 interface FormData {
   name: string
   description: string
-  notionApiKey: string
-  databaseId: string
-  dateColumn: string
-  timeColumn: string
-  propertyColumn: string
-  activityColumn: string
+  notion_api_key: string
+  database_id: string
+  date_column: string
+  time_column: string
+  property_column: string
+  activity_column: string
   colorTheme: string
-  weekStart: string
-  isPublic: boolean
+  week_start: string
+  is_public: boolean
   insights: {
     averageTime: boolean
     totalDays: boolean
@@ -46,6 +48,20 @@ interface DatabaseSchema {
   }
 }
 
+// Add the color classes definition
+const colorThemes: ColorTheme[] = [
+  'orange',
+  'yellow',
+  'green',
+  'blue',
+  'purple',
+  'pink',
+  'red',
+  'brown',
+  'gray',
+  'lightgray'
+]
+
 export function CreateHeatmapForm() {
   const router = useRouter()
   const supabase = createClientComponentClient()
@@ -55,15 +71,15 @@ export function CreateHeatmapForm() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
-    notionApiKey: "",
-    databaseId: "",
-    dateColumn: "",
-    timeColumn: "",
-    propertyColumn: "",
-    activityColumn: "",
+    notion_api_key: "",
+    database_id: "",
+    date_column: "",
+    time_column: "",
+    property_column: "",
+    activity_column: "",
     colorTheme: "orange",
-    weekStart: "monday",
-    isPublic: true,
+    week_start: "monday",
+    is_public: true,
     insights: {
       averageTime: true,
       totalDays: true,
@@ -78,12 +94,12 @@ export function CreateHeatmapForm() {
       return false
     }
 
-    if (!formData.notionApiKey.trim()) {
+    if (!formData.notion_api_key.trim()) {
       toast.error('Please enter your Notion API key')
       return false
     }
 
-    if (!formData.databaseId.trim()) {
+    if (!formData.database_id.trim()) {
       toast.error('Please enter your database ID')
       return false
     }
@@ -93,22 +109,22 @@ export function CreateHeatmapForm() {
       return false
     }
 
-    if (!formData.dateColumn) {
+    if (!formData.date_column) {
       toast.error('Please select a date column')
       return false
     }
 
-    if (!formData.timeColumn) {
+    if (!formData.time_column) {
       toast.error('Please select a time/duration column')
       return false
     }
 
-    if (!formData.propertyColumn) {
+    if (!formData.property_column) {
       toast.error('Please select an activity type column')
       return false
     }
 
-    if (!formData.activityColumn.trim()) {
+    if (!formData.activity_column.trim()) {
       toast.error('Please enter an activity type to track')
       return false
     }
@@ -142,8 +158,8 @@ export function CreateHeatmapForm() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          apiKey: formData.notionApiKey,
-          databaseId: formData.databaseId,
+          apiKey: formData.notion_api_key,
+          databaseId: formData.database_id,
         }),
       })
 
@@ -161,15 +177,15 @@ export function CreateHeatmapForm() {
         .insert({
           name: formData.name,
           description: formData.description,
-          notion_api_key: formData.notionApiKey,
-          database_id: formData.databaseId,
-          date_column: formData.dateColumn,
-          time_column: formData.timeColumn,
-          property_column: formData.propertyColumn,
-          activity_column: formData.activityColumn,
+          notion_api_key: formData.notion_api_key,
+          database_id: formData.database_id,
+          date_column: formData.date_column,
+          time_column: formData.time_column,
+          property_column: formData.property_column,
+          activity_column: formData.activity_column,
           color_theme: formData.colorTheme,
-          week_start: formData.weekStart,
-          is_public: formData.isPublic,
+          week_start: formData.week_start,
+          is_public: formData.is_public,
           insights: formData.insights,
           user_id: user.id,
           display_order: 0
@@ -210,7 +226,7 @@ export function CreateHeatmapForm() {
 
   // Function to validate Notion credentials and fetch schema
   const validateNotionAndFetchSchema = async () => {
-    if (!formData.notionApiKey || !formData.databaseId) return
+    if (!formData.notion_api_key || !formData.database_id) return
 
     setIsValidatingNotion(true)
     try {
@@ -220,8 +236,8 @@ export function CreateHeatmapForm() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          apiKey: formData.notionApiKey,
-          databaseId: formData.databaseId,
+          apiKey: formData.notion_api_key,
+          databaseId: formData.database_id,
         }),
       })
 
@@ -249,7 +265,15 @@ export function CreateHeatmapForm() {
     }, 500) // Debounce validation
 
     return () => clearTimeout(timeoutId)
-  }, [formData.notionApiKey, formData.databaseId])
+  }, [formData.notion_api_key, formData.database_id])
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { id, value } = e.target
+    setFormData((prevData) => ({
+      ...prevData,
+      [id]: value,
+    }))
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -260,7 +284,7 @@ export function CreateHeatmapForm() {
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={handleInputChange}
             placeholder="My Activity Heatmap"
             required
           />
@@ -271,7 +295,7 @@ export function CreateHeatmapForm() {
           <Textarea
             id="description"
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={handleInputChange}
             placeholder="Track my daily activities..."
           />
         </div>
@@ -280,66 +304,67 @@ export function CreateHeatmapForm() {
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Notion Database Configuration</h3>
           
-          {/* API Key and Database ID fields */}
+          {/* API Key field */}
           <div className="space-y-2">
-            <Label htmlFor="notionApiKey">Notion API Key</Label>
+            <Label htmlFor="notion_api_key">Notion API Key</Label>
             <Input
-              id="notionApiKey"
-              type="password"
-              value={formData.notionApiKey}
-              onChange={(e) => setFormData({ ...formData, notionApiKey: e.target.value })}
-              placeholder="ntn_xxxxxxxx..."
-              required
+              id="notion_api_key"
+              value={formData.notion_api_key}
+              onChange={handleInputChange}
+              placeholder="ntn_..."
             />
-            <div className="text-sm text-muted-foreground space-y-1">
-              <div>To get your API key:</div>
-              <ol className="list-decimal list-inside">
-                <li>Go to <a 
-                  href="https://www.notion.so/my-integrations" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  Notion Integrations
-                </a></li>
-                <li>Click "New integration"</li>
-                <li>Name it "Notion Heatmap"</li>
-                <li>Select your workspace</li>
-                <li>Under "Capabilities", enable:
-                  <ul className="list-disc list-inside ml-4">
-                    <li>Read content</li>
-                    <li>Read databases</li>
-                  </ul>
-                </li>
-                <li>Copy the "Internal Integration Token" (starts with ntn_)</li>
-              </ol>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="databaseId">Database ID</Label>
-            <Input
-              id="databaseId"
-              value={formData.databaseId}
-              onChange={(e) => setFormData({ ...formData, databaseId: e.target.value })}
-              placeholder="xxxxx-xxxxx-xxxxx-xxxxx"
-              required
-            />
-            <div className="text-sm text-muted-foreground space-y-1">
-              <div>To get your database ID and share it:</div>
-              <ol className="list-decimal list-inside">
-                <li>Open your Notion database</li>
-                <li>Copy the ID from the URL (after the workspace name and before ?v=)</li>
-                <li>Click "Share" in the top right</li>
-                <li>Click "Invite" and find your integration</li>
-                <li>Click "Invite"</li>
-              </ol>
-            </div>
-          </div>
-
-          {isValidatingNotion && (
             <div className="text-sm text-muted-foreground">
-              Validating Notion access...
+              To get your API key:
+            </div>
+            <ol className="text-sm text-muted-foreground list-decimal list-inside mt-2 space-y-1">
+              <li>Go to Notion Integrations</li>
+              <li>Click "New integration"</li>
+              <li>Name it "Heatmap Integration"</li>
+              <li>Select your workspace</li>
+              <li>
+                Under "Capabilities", enable:
+                <ul className="list-disc list-inside ml-4 mt-1">
+                  <li>Read content</li>
+                </ul>
+              </li>
+              <li>Copy the "Internal Integration Token" (starts with ntn_)</li>
+            </ol>
+          </div>
+
+          {/* Database ID field */}
+          <div className="space-y-2">
+            <Label htmlFor="database_id">Database ID</Label>
+            <Input
+              id="database_id"
+              value={formData.database_id}
+              onChange={handleInputChange}
+            />
+            <div className="text-sm text-muted-foreground">
+              To get your database ID and share it:
+            </div>
+            <ol className="text-sm text-muted-foreground list-decimal list-inside mt-2 space-y-1">
+              <li>Open your Notion database</li>
+              <li>Copy the ID from the URL (after the workspace name and before ?v=)</li>
+              <li>Make sure to Click "..." setting on the top right</li>
+              <li>Click "Connections" and find "Heatmap Integration"</li>
+              <li>Click "Confirm" and check it display on the active connections section</li>
+            </ol>
+          </div>
+
+          {/* Show warning when Notion credentials are missing/invalid */}
+          {(!formData.notion_api_key || !formData.database_id || !databaseSchema) && (
+            <div className="rounded-md bg-destructive/15 p-3">
+              <div className="flex">
+                <Icons.warning className="h-5 w-5 text-destructive" />
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-destructive">
+                    Notion Connection Required
+                  </h3>
+                  <div className="text-sm text-destructive">
+                    Unable to fetch database properties. Please verify your credentials.
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -348,12 +373,12 @@ export function CreateHeatmapForm() {
             <div className="space-y-4">
               {/* Date Column */}
               <div className="space-y-2">
-                <Label htmlFor="dateColumn">Date Column</Label>
+                <Label htmlFor="date_column">Date Column</Label>
                 <Select
-                  value={formData.dateColumn}
-                  onValueChange={(value) => setFormData({ ...formData, dateColumn: value })}
+                  value={formData.date_column}
+                  onValueChange={(value) => handleInputChange({ target: { id: 'date_column', value } })}
                 >
-                  <SelectTrigger id="dateColumn">
+                  <SelectTrigger id="date_column">
                     <SelectValue placeholder="Select date column" />
                   </SelectTrigger>
                   <SelectContent>
@@ -377,12 +402,12 @@ export function CreateHeatmapForm() {
 
               {/* Time Column */}
               <div className="space-y-2">
-                <Label htmlFor="timeColumn">Time/Duration Column</Label>
+                <Label htmlFor="time_column">Time/Duration Column</Label>
                 <Select
-                  value={formData.timeColumn}
-                  onValueChange={(value) => setFormData({ ...formData, timeColumn: value })}
+                  value={formData.time_column}
+                  onValueChange={(value) => handleInputChange({ target: { id: 'time_column', value } })}
                 >
-                  <SelectTrigger id="timeColumn">
+                  <SelectTrigger id="time_column">
                     <SelectValue placeholder="Select time column" />
                   </SelectTrigger>
                   <SelectContent>
@@ -400,12 +425,12 @@ export function CreateHeatmapForm() {
 
               {/* Property Column */}
               <div className="space-y-2">
-                <Label htmlFor="propertyColumn">Activity Type Column</Label>
+                <Label htmlFor="property_column">Activity Type Column</Label>
                 <Select
-                  value={formData.propertyColumn}
-                  onValueChange={(value) => setFormData({ ...formData, propertyColumn: value })}
+                  value={formData.property_column}
+                  onValueChange={(value) => handleInputChange({ target: { id: 'property_column', value } })}
                 >
-                  <SelectTrigger id="propertyColumn">
+                  <SelectTrigger id="property_column">
                     <SelectValue placeholder="Select activity type column" />
                   </SelectTrigger>
                   <SelectContent>
@@ -425,11 +450,11 @@ export function CreateHeatmapForm() {
 
               {/* Activity Filter */}
               <div className="space-y-2">
-                <Label htmlFor="activityColumn">Activity Filter</Label>
+                <Label htmlFor="activity_column">Activity Filter</Label>
                 <Input
-                  id="activityColumn"
-                  value={formData.activityColumn}
-                  onChange={(e) => setFormData({ ...formData, activityColumn: e.target.value })}
+                  id="activity_column"
+                  value={formData.activity_column}
+                  onChange={handleInputChange}
                   placeholder="e.g., Exercise"
                 />
                 <p className="text-sm text-muted-foreground">
@@ -445,16 +470,33 @@ export function CreateHeatmapForm() {
           <Label>Color Theme</Label>
           <Select
             value={formData.colorTheme}
-            onValueChange={(value) => setFormData({ ...formData, colorTheme: value })}
+            onValueChange={(value) => handleInputChange({ target: { id: 'colorTheme', value } })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select color theme" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="orange">Orange</SelectItem>
-              <SelectItem value="green">Green</SelectItem>
-              <SelectItem value="blue">Blue</SelectItem>
-              <SelectItem value="purple">Purple</SelectItem>
+              {colorThemes.map((color) => (
+                <SelectItem
+                  key={color}
+                  value={color}
+                  className={cn(
+                    "capitalize",
+                    color === 'orange' && 'hover:bg-orange-100',
+                    color === 'yellow' && 'hover:bg-yellow-100',
+                    color === 'green' && 'hover:bg-green-100',
+                    color === 'blue' && 'hover:bg-blue-100',
+                    color === 'purple' && 'hover:bg-purple-100',
+                    color === 'pink' && 'hover:bg-pink-100',
+                    color === 'red' && 'hover:bg-red-100',
+                    color === 'brown' && 'hover:bg-amber-100',
+                    color === 'gray' && 'hover:bg-gray-100',
+                    color === 'lightgray' && 'hover:bg-slate-100'
+                  )}
+                >
+                  {color === 'lightgray' ? 'Light Gray' : color}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -462,8 +504,8 @@ export function CreateHeatmapForm() {
         <div className="space-y-2">
           <Label>Week Starts On</Label>
           <Select
-            value={formData.weekStart}
-            onValueChange={(value) => setFormData({ ...formData, weekStart: value })}
+            value={formData.week_start}
+            onValueChange={(value) => handleInputChange({ target: { id: 'week_start', value } })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select week start" />
@@ -484,10 +526,7 @@ export function CreateHeatmapForm() {
                 id="averageTime"
                 checked={formData.insights.averageTime}
                 onCheckedChange={(checked) => 
-                  setFormData({
-                    ...formData,
-                    insights: { ...formData.insights, averageTime: checked as boolean }
-                  })
+                  handleInputChange({ target: { id: 'insights.averageTime', value: checked as boolean } })
                 }
               />
               <label htmlFor="averageTime" className="text-sm">
@@ -500,10 +539,7 @@ export function CreateHeatmapForm() {
                 id="totalDays"
                 checked={formData.insights.totalDays}
                 onCheckedChange={(checked) => 
-                  setFormData({
-                    ...formData,
-                    insights: { ...formData.insights, totalDays: checked as boolean }
-                  })
+                  handleInputChange({ target: { id: 'insights.totalDays', value: checked as boolean } })
                 }
               />
               <label htmlFor="totalDays" className="text-sm">
@@ -516,10 +552,7 @@ export function CreateHeatmapForm() {
                 id="totalTime"
                 checked={formData.insights.totalTime}
                 onCheckedChange={(checked) => 
-                  setFormData({
-                    ...formData,
-                    insights: { ...formData.insights, totalTime: checked as boolean }
-                  })
+                  handleInputChange({ target: { id: 'insights.totalTime', value: checked as boolean } })
                 }
               />
               <label htmlFor="totalTime" className="text-sm">
@@ -532,10 +565,7 @@ export function CreateHeatmapForm() {
                 id="standardDeviation"
                 checked={formData.insights.standardDeviation}
                 onCheckedChange={(checked) => 
-                  setFormData({
-                    ...formData,
-                    insights: { ...formData.insights, standardDeviation: checked as boolean }
-                  })
+                  handleInputChange({ target: { id: 'insights.standardDeviation', value: checked as boolean } })
                 }
               />
               <label htmlFor="standardDeviation" className="text-sm">
@@ -550,41 +580,21 @@ export function CreateHeatmapForm() {
           <Label>Privacy</Label>
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="isPublic"
-              checked={formData.isPublic}
+              id="is_public"
+              checked={formData.is_public}
               onCheckedChange={(checked) => 
-                setFormData({ ...formData, isPublic: checked as boolean })
+                handleInputChange({ target: { id: 'is_public', value: checked } })
               }
             />
-            <label htmlFor="isPublic" className="text-sm">
-              Make this heatmap public
+            <label
+              htmlFor="is_public"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Public (can view by others when you share to them)
             </label>
           </div>
         </div>
       </div>
-
-      {/* Show warning when Notion credentials are missing/invalid */}
-      {(!formData.notionApiKey || !formData.databaseId || !databaseSchema) && (
-        <div className="rounded-md bg-destructive/15 p-3">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <Icons.warning className="h-5 w-5 text-destructive" aria-hidden="true" />
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-destructive">
-                Notion Connection Required
-              </h3>
-              <div className="mt-2 text-sm text-destructive/90">
-                <p>
-                  {!formData.notionApiKey || !formData.databaseId
-                    ? "Please enter your Notion API key and database ID to continue."
-                    : "Unable to fetch database properties. Please verify your credentials."}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Creating..." : "Create Heatmap"}

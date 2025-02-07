@@ -19,6 +19,13 @@ const colorClasses: Record<ColorTheme, string[]> = {
     'bg-orange-300 dark:bg-orange-700/50',
     'bg-orange-400 dark:bg-orange-600/60',
   ],
+  yellow: [
+    'bg-yellow-50 dark:bg-yellow-950/30',
+    'bg-yellow-100 dark:bg-yellow-900/30',
+    'bg-yellow-200 dark:bg-yellow-800/40',
+    'bg-yellow-300 dark:bg-yellow-700/50',
+    'bg-yellow-400 dark:bg-yellow-600/60',
+  ],
   green: [
     'bg-green-50 dark:bg-green-950/30',
     'bg-green-100 dark:bg-green-900/30',
@@ -39,6 +46,41 @@ const colorClasses: Record<ColorTheme, string[]> = {
     'bg-purple-200 dark:bg-purple-800/40',
     'bg-purple-300 dark:bg-purple-700/50',
     'bg-purple-400 dark:bg-purple-600/60',
+  ],
+  pink: [
+    'bg-pink-50 dark:bg-pink-950/30',
+    'bg-pink-100 dark:bg-pink-900/30',
+    'bg-pink-200 dark:bg-pink-800/40',
+    'bg-pink-300 dark:bg-pink-700/50',
+    'bg-pink-400 dark:bg-pink-600/60',
+  ],
+  red: [
+    'bg-red-50 dark:bg-red-950/30',
+    'bg-red-100 dark:bg-red-900/30',
+    'bg-red-200 dark:bg-red-800/40',
+    'bg-red-300 dark:bg-red-700/50',
+    'bg-red-400 dark:bg-red-600/60',
+  ],
+  brown: [
+    'bg-amber-50 dark:bg-amber-950/30',
+    'bg-amber-100 dark:bg-amber-900/30',
+    'bg-amber-200 dark:bg-amber-800/40',
+    'bg-amber-300 dark:bg-amber-700/50',
+    'bg-amber-400 dark:bg-amber-600/60',
+  ],
+  gray: [
+    'bg-gray-50 dark:bg-gray-950/30',
+    'bg-gray-100 dark:bg-gray-900/30',
+    'bg-gray-200 dark:bg-gray-800/40',
+    'bg-gray-300 dark:bg-gray-700/50',
+    'bg-gray-400 dark:bg-gray-600/60',
+  ],
+  lightgray: [
+    'bg-slate-50 dark:bg-slate-950/30',
+    'bg-slate-100 dark:bg-slate-900/30',
+    'bg-slate-200 dark:bg-slate-800/40',
+    'bg-slate-300 dark:bg-slate-700/50',
+    'bg-slate-400 dark:bg-slate-600/60',
   ],
 }
 
@@ -145,19 +187,24 @@ export function HeatmapGrid({
   const monthLabels = useMemo(() => {
     const labels: { month: string, offset: number }[] = []
     let currentMonth = -1
+    const totalWeeks = weeks.length
     
     dates.forEach((date, index) => {
-      const month = new Date(date.date).getMonth()
-      if (month !== currentMonth) {
+      const dateObj = new Date(date.date)
+      const month = dateObj.getMonth()
+      const weekIndex = Math.floor(index / 7)
+      
+      // Only add label if it's a new month and within the grid
+      if (month !== currentMonth && weekIndex < totalWeeks) {
         labels.push({
           month: MONTHS[month],
-          offset: Math.floor(index / 7)
+          offset: weekIndex
         })
         currentMonth = month
       }
     })
     return labels
-  }, [dates])
+  }, [dates, weeks.length])
 
   return (
     <div className="flex flex-col gap-2">
@@ -166,7 +213,7 @@ export function HeatmapGrid({
         {monthLabels.map(({ month, offset }, i) => (
           <div
             key={`${month}-${i}`}
-            className="text-xs text-muted-foreground"
+            className="text-xs text-muted-foreground dark:text-gray-400"
             style={{
               position: 'relative',
               left: `${offset * 16}px`,
@@ -179,7 +226,7 @@ export function HeatmapGrid({
 
       <div className="flex">
         {/* Day labels */}
-        <div className="flex flex-col justify-between pr-2 text-xs text-muted-foreground h-[116px]">
+        <div className="flex flex-col justify-between pr-2 text-xs text-muted-foreground dark:text-gray-400 h-[116px]">
           {DAYS.map(day => (
             <div key={day}>{day}</div>
           ))}
@@ -196,7 +243,7 @@ export function HeatmapGrid({
                     key={`${weekIndex}-${dayIndex}`}
                     className={cn(
                       "w-3 h-3 rounded-sm",
-                      day.date ? colorClasses[colorTheme][intensity] : "bg-muted",
+                      day.date ? colorClasses[colorTheme][intensity] : "bg-muted dark:bg-gray-800",
                       "transition-colors duration-200"
                     )}
                     title={day.date ? `${day.date}: ${day.value.toFixed(1)} hours` : ''}

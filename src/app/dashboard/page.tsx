@@ -53,7 +53,7 @@ export default async function DashboardPage() {
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="space-y-6">
         {heatmapsWithData.map(({ config, data }) => (
           <HeatmapCard
             key={config.id}
