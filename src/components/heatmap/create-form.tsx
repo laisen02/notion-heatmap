@@ -135,11 +135,10 @@ export function CreateHeatmapForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
-    if (!validateForm()) {
-      return
-    }
-
+    if (!validateForm()) return
+    
     setIsLoading(true)
+    const loadingToast = toast.loading('Creating your heatmap...')
 
     try {
       // Check if user is authenticated
@@ -210,15 +209,17 @@ export function CreateHeatmapForm() {
         throw new Error('Failed to create heatmap - no data returned')
       }
 
-      toast.success('Heatmap created successfully')
-      router.push(`/dashboard`)
+      toast.success('Heatmap created successfully!', {
+        id: loadingToast,
+      })
+
+      // Immediate redirect
+      router.push('/dashboard')
     } catch (error) {
-      console.error('Error:', error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error('Failed to create heatmap')
-      }
+      toast.error('Failed to create heatmap', {
+        id: loadingToast,
+      })
+      console.error('Error creating heatmap:', error)
     } finally {
       setIsLoading(false)
     }
@@ -435,16 +436,21 @@ export function CreateHeatmapForm() {
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(databaseSchema)
-                      .filter(([_, prop]) => prop.type === 'select')
-                      .map(([key]) => (
+                      .filter(([_, prop]) => 
+                        prop.type === 'select' || 
+                        prop.type === 'multi_select' ||
+                        prop.type === 'title' ||
+                        prop.type === 'rich_text'
+                      )
+                      .map(([key, prop]) => (
                         <SelectItem key={key} value={key}>
-                          {key}
+                          {key} ({prop.type})
                         </SelectItem>
                       ))}
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-muted-foreground">
-                  Select the column containing activity types
+                  Select the column containing activity types (can be Select, Multi-select, Title, or Text)
                 </p>
               </div>
 
@@ -521,57 +527,31 @@ export function CreateHeatmapForm() {
         <div className="space-y-4">
           <Label>Insights</Label>
           <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="averageTime"
-                checked={formData.insights.averageTime}
-                onCheckedChange={(checked) => 
-                  handleInputChange({ target: { id: 'insights.averageTime', value: checked as boolean } })
-                }
-              />
-              <label htmlFor="averageTime" className="text-sm">
-                Average Time Per Active Day
-              </label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="totalDays"
-                checked={formData.insights.totalDays}
-                onCheckedChange={(checked) => 
-                  handleInputChange({ target: { id: 'insights.totalDays', value: checked as boolean } })
-                }
-              />
-              <label htmlFor="totalDays" className="text-sm">
-                Total Days Active
-              </label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="totalTime"
-                checked={formData.insights.totalTime}
-                onCheckedChange={(checked) => 
-                  handleInputChange({ target: { id: 'insights.totalTime', value: checked as boolean } })
-                }
-              />
-              <label htmlFor="totalTime" className="text-sm">
-                Total Time
-              </label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="standardDeviation"
-                checked={formData.insights.standardDeviation}
-                onCheckedChange={(checked) => 
-                  handleInputChange({ target: { id: 'insights.standardDeviation', value: checked as boolean } })
-                }
-              />
-              <label htmlFor="standardDeviation" className="text-sm">
-                Standard Deviation
-              </label>
-            </div>
+            {Object.entries({
+              averageTime: "Average Time Per Active Day",
+              totalDays: "Total Days Active",
+              totalTime: "Total Time",
+              standardDeviation: "Standard Deviation"
+            }).map(([key, label]) => (
+              <div key={key} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`insights.${key}`}
+                  checked={formData.insights[key as keyof typeof formData.insights]}
+                  onCheckedChange={(checked) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      insights: {
+                        ...prev.insights,
+                        [key]: checked
+                      }
+                    }))
+                  }}
+                />
+                <label htmlFor={`insights.${key}`} className="text-sm">
+                  {label}
+                </label>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -596,8 +576,19 @@ export function CreateHeatmapForm() {
         </div>
       </div>
 
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Creating..." : "Create Heatmap"}
+      <Button 
+        type="submit" 
+        className="w-full" 
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <div className="flex items-center space-x-2">
+            <Icons.spinner className="h-4 w-4 animate-spin" />
+            <span>Creating Heatmap...</span>
+          </div>
+        ) : (
+          "Create Heatmap"
+        )}
       </Button>
     </form>
   )

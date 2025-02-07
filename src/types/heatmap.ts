@@ -19,15 +19,15 @@ export interface HeatmapConfig {
   id: string
   name: string
   description?: string
-  notionApiKey: string
-  databaseId: string
-  dateColumn: string
-  timeColumn: string
-  propertyColumn: string
-  activityColumn: string
-  colorTheme: ColorTheme
-  weekStart: 'monday' | 'sunday'
-  isPublic: boolean
+  notion_api_key: string
+  database_id: string
+  date_column: string
+  time_column: string
+  property_column: string
+  activity_column: string
+  color_theme: ColorTheme
+  week_start: 'monday' | 'sunday'
+  is_public: boolean
   insights: {
     averageTime: boolean
     totalDays: boolean
@@ -35,5 +35,5 @@ export interface HeatmapConfig {
     standardDeviation: boolean
   }
   embedLink?: string
-  displayOrder: number
+  display_order: number
 } 

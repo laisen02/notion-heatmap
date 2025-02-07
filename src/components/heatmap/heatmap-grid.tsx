@@ -3,6 +3,7 @@
 import { useMemo } from "react"
 import { HeatmapData, ColorTheme } from "@/types/heatmap"
 import { cn } from "@/lib/utils"
+import { Tooltip } from "@/components/ui/tooltip"
 
 interface HeatmapGridProps {
   data: HeatmapData[]
@@ -239,15 +240,19 @@ export function HeatmapGrid({
               {week.map((day, dayIndex) => {
                 const intensity = getColorIntensity(day.value)
                 return (
-                  <div
+                  <Tooltip
                     key={`${weekIndex}-${dayIndex}`}
-                    className={cn(
-                      "w-3 h-3 rounded-sm",
-                      day.date ? colorClasses[colorTheme][intensity] : "bg-muted dark:bg-gray-800",
-                      "transition-colors duration-200"
-                    )}
-                    title={day.date ? `${day.date}: ${day.value.toFixed(1)} hours` : ''}
-                  />
+                    content={day.date ? `${day.date}: ${day.value.toFixed(1)} hours` : ''}
+                    delayDuration={0}
+                  >
+                    <div
+                      className={cn(
+                        "w-3 h-3 rounded-sm transition-all duration-100",
+                        day.date ? colorClasses[colorTheme][intensity] : "bg-muted dark:bg-gray-800",
+                        "hover:ring-2 hover:ring-offset-2 hover:ring-ring hover:ring-offset-background"
+                      )}
+                    />
+                  </Tooltip>
                 )
               })}
             </div>

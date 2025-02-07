@@ -266,8 +266,8 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
           <div className={cn("min-w-[800px]", isDarkMode && "dark")}>
             <HeatmapGrid
               data={filteredData}
-              colorTheme={config.colorTheme}
-              weekStart={config.weekStart}
+              colorTheme={config.color_theme as ColorTheme}
+              weekStart={config.week_start}
               className="mb-4"
             />
           </div>
