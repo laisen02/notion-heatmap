@@ -4,7 +4,7 @@ import { MainNav } from '@/components/layout/nav'
 import { Toaster } from 'sonner'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -24,9 +24,11 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        {session && <MainNav />}
-        <main>{children}</main>
-        <Toaster />
+        <ErrorBoundary>
+          {session && <MainNav />}
+          <main>{children}</main>
+          <Toaster />
+        </ErrorBoundary>
       </body>
     </html>
   )
