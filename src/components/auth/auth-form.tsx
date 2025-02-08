@@ -30,27 +30,29 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
     setIsLoading(true)
 
     try {
-      // First check if user exists
-      const { data: { user: existingUser }, error: getUserError } = await supabase.auth.getUser()
-
-      if (getUserError) {
-        throw getUserError
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        })
+        if (error) throw error
+        toast.success("Check your email to confirm your account")
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+        if (error) throw error
+        
+        router.refresh()
+        router.push("/dashboard")
       }
-
-      // Sign in or sign up based on whether user exists
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (error) throw error
-
-      router.push('/dashboard')
-      router.refresh()
-    } catch (error) {
-      const authError = error as AuthError
-      console.error("Auth error:", authError)
-      toast.error(authError.message || "Authentication failed")
+    } catch (error: any) {
+      console.error("Auth error:", error)
+      toast.error(error.message || "Authentication failed")
     } finally {
       setIsLoading(false)
     }
@@ -66,10 +68,9 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
         },
       })
       if (error) throw error
-    } catch (error) {
-      const authError = error as AuthError
-      console.error("OAuth error:", authError)
-      toast.error(authError.message || "Failed to sign in with Google")
+    } catch (error: any) {
+      console.error("OAuth error:", error)
+      toast.error(error.message || "Failed to sign in with Google")
     } finally {
       setIsLoading(false)
     }
@@ -110,24 +111,12 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
               minLength={6}
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Sign In
-            </Button>
-            {!isSignUp && (
-              <div className="text-sm text-center">
-                <Link 
-                  href="/auth/forgot-password"
-                  className="text-muted-foreground hover:text-primary underline underline-offset-4"
-                >
-                  Forgot your password?
-                </Link>
-              </div>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && (
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
             )}
-          </div>
+            {isSignUp ? "Sign Up" : "Sign In"}
+          </Button>
         </div>
       </form>
       <div className="relative">
@@ -154,7 +143,7 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
         onClick={() => setIsSignUp(!isSignUp)}
         disabled={isLoading}
       >
-        {isSignUp ? "Already have an account? Sign in" : "Create an account"}
+        {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
       </Button>
     </div>
   )

@@ -3,56 +3,50 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  const res = NextResponse.next()
+  const supabase = createMiddlewareClient({ req: request, res })
+
   try {
-    const res = NextResponse.next()
-    const supabase = createMiddlewareClient({ req: request, res })
+    // Refresh session if expired - required for Server Components
+    await supabase.auth.getSession()
 
     const {
       data: { session },
     } = await supabase.auth.getSession()
 
-    // If no session and trying to access protected routes
-    if (!session && isProtectedRoute(request.nextUrl.pathname)) {
-      const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = '/auth'
-      redirectUrl.searchParams.set('from', request.nextUrl.pathname)
-      return NextResponse.redirect(redirectUrl)
+    // Auth pages should redirect to dashboard if user is already logged in
+    if (session && request.nextUrl.pathname.startsWith('/auth')) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
-    // If session and trying to access auth routes
-    if (session && isAuthRoute(request.nextUrl.pathname)) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+    // Protected routes should redirect to login if user is not logged in
+    if (!session && isProtectedRoute(request.nextUrl.pathname)) {
+      return NextResponse.redirect(new URL('/auth', request.url))
     }
 
     return res
   } catch (error) {
     console.error('Middleware error:', error)
-    // On error, allow the request to continue
-    return NextResponse.next()
+    return res
   }
 }
 
 // Protected routes that require authentication
 function isProtectedRoute(pathname: string): boolean {
-  return ['/dashboard', '/create', '/settings'].some(route => 
+  return ['/dashboard', '/create', '/edit', '/settings'].some(route => 
     pathname.startsWith(route)
   )
-}
-
-// Auth routes that should redirect to dashboard if user is already logged in
-function isAuthRoute(pathname: string): boolean {
-  return pathname.startsWith('/auth')
 }
 
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - public folder
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 } 
