@@ -25,10 +25,10 @@ export default async function DashboardPage() {
       redirect('/auth')
     }
 
-    // Get user's heatmaps
+    // Get user's heatmaps with data
     const { data: heatmaps, error: heatmapsError } = await supabase
       .from('heatmaps')
-      .select('*')
+      .select('id, name, created_at, user_id, data')
       .eq('user_id', session.user.id)
       .order('created_at', { ascending: false })
 

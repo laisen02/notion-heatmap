@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { HeatmapGrid } from "./heatmap-grid"
@@ -14,7 +14,7 @@ interface Heatmap {
   name: string
   created_at: string
   user_id: string
-  data?: any // Add this for heatmap data
+  data: number[][] // Update this to match your schema
 }
 
 interface HeatmapCardProps {
@@ -23,28 +23,10 @@ interface HeatmapCardProps {
 
 export function HeatmapCard({ heatmap }: HeatmapCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
-  const [heatmapData, setHeatmapData] = useState<any>(null)
   const supabase = createClientComponentClient()
 
-  useEffect(() => {
-    async function fetchHeatmapData() {
-      try {
-        const { data, error } = await supabase
-          .from('heatmap_data')
-          .select('*')
-          .eq('heatmap_id', heatmap.id)
-          .single()
-
-        if (error) throw error
-        setHeatmapData(data)
-      } catch (error) {
-        console.error('Error fetching heatmap data:', error)
-        toast.error("Failed to load heatmap data")
-      }
-    }
-
-    fetchHeatmapData()
-  }, [heatmap.id, supabase])
+  // Initialize empty grid if no data
+  const gridData = heatmap.data || Array(7).fill(Array(7).fill(0))
 
   const handleDelete = async () => {
     try {
@@ -76,15 +58,13 @@ export function HeatmapCard({ heatmap }: HeatmapCardProps) {
           <p className="text-sm text-muted-foreground">
             Created on {new Date(heatmap.created_at).toLocaleDateString()}
           </p>
-          {heatmapData && (
-            <div className="w-full aspect-square">
-              <HeatmapGrid 
-                data={heatmapData.data || []}
-                isInteractive={false}
-                showTooltip={true}
-              />
-            </div>
-          )}
+          <div className="w-full aspect-square">
+            <HeatmapGrid 
+              data={gridData}
+              isInteractive={false}
+              showTooltip={true}
+            />
+          </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
