@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
       data: { session },
     } = await supabase.auth.getSession()
 
-    // If there's no session and trying to access protected routes
+    // If no session and trying to access protected routes
     if (!session && isProtectedRoute(request.nextUrl.pathname)) {
       const redirectUrl = request.nextUrl.clone()
       redirectUrl.pathname = '/auth'
@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    // If there's a session and trying to access auth routes
+    // If session and trying to access auth routes
     if (session && isAuthRoute(request.nextUrl.pathname)) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
@@ -27,6 +27,7 @@ export async function middleware(request: NextRequest) {
     return res
   } catch (error) {
     console.error('Middleware error:', error)
+    // On error, allow the request to continue
     return NextResponse.next()
   }
 }

@@ -4,20 +4,25 @@ import { HeatmapCard } from "@/components/heatmap/heatmap-card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { ErrorMessage } from "@/components/error-message"
 
 export default async function DashboardPage() {
+  const cookieStore = cookies()
+  const supabase = createServerComponentClient({ cookies: () => cookieStore })
+
   try {
-    const cookieStore = cookies()
-    const supabase = createServerComponentClient({ cookies: () => cookieStore })
-    
+    // Check session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
-    if (sessionError || !session) {
+    if (sessionError) {
+      console.error('Session error:', sessionError)
       redirect('/auth')
     }
 
-    // Get user's heatmaps with error handling
+    if (!session) {
+      redirect('/auth')
+    }
+
+    // Get user's heatmaps
     const { data: heatmaps, error: heatmapsError } = await supabase
       .from('heatmaps')
       .select('*')
@@ -25,8 +30,7 @@ export default async function DashboardPage() {
       .order('created_at', { ascending: false })
 
     if (heatmapsError) {
-      console.error('Error fetching heatmaps:', heatmapsError)
-      return <ErrorMessage />
+      throw new Error(`Failed to fetch heatmaps: ${heatmapsError.message}`)
     }
 
     // If no heatmaps, show empty state
@@ -44,7 +48,7 @@ export default async function DashboardPage() {
       )
     }
 
-    // Show heatmaps grid if we have data
+    // Show heatmaps grid
     return (
       <div className="container py-8">
         <div className="flex justify-between items-center mb-8">
@@ -65,6 +69,18 @@ export default async function DashboardPage() {
     )
   } catch (error) {
     console.error('Dashboard error:', error)
-    return <ErrorMessage />
+    return (
+      <div className="container py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Something went wrong</h1>
+          <p className="text-muted-foreground mb-4">
+            {error instanceof Error ? error.message : 'Please try refreshing the page'}
+          </p>
+          <Link href="/dashboard">
+            <Button>Refresh Page</Button>
+          </Link>
+        </div>
+      </div>
+    )
   }
 } 
