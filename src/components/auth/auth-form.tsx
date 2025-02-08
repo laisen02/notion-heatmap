@@ -159,13 +159,23 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
               minLength={6}
             />
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2">
             <Button type="submit" disabled={isLoading}>
               {isLoading && (
                 <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
               )}
               {isSignUp ? "Sign Up" : "Sign In"}
             </Button>
+            {!isSignUp && (
+              <div className="text-sm text-center">
+                <Link 
+                  href="/auth/forgot-password"
+                  className="text-muted-foreground hover:text-primary underline underline-offset-4"
+                >
+                  Forgot your password?
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </form>
