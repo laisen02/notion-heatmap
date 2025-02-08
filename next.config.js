@@ -10,13 +10,11 @@ module.exports = {
     domains: ['lh3.googleusercontent.com'], // For Google Auth profile images
   },
   experimental: {
-    serverActions: true,
+    serverActions: {
+      allowedOrigins: ['localhost:3000', 'notionheatmap.com']
+    }
   },
-  webpack: (config) => {
-    config.externals = [...config.externals, 'punycode']  // Handle punycode deprecation warning
-    return config
-  },
-  async headers() {
+  headers: async () => {
     return [
       {
         // Apply these headers to all routes
