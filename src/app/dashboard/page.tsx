@@ -41,6 +41,24 @@ export default async function DashboardPage() {
       throw new Error('No heatmaps found')
     }
 
+    // Fetch initial data for each heatmap
+    const heatmapsWithData = await Promise.all(
+      heatmaps.map(async (heatmap) => {
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notion/data`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ heatmapId: heatmap.id }),
+          })
+          const { data } = await response.json()
+          return { ...heatmap, initialData: data }
+        } catch (error) {
+          console.error('Error fetching initial data:', error)
+          return { ...heatmap, initialData: [] }
+        }
+      })
+    )
+
     // Show empty state if no heatmaps
     if (heatmaps.length === 0) {
       return (
@@ -66,11 +84,11 @@ export default async function DashboardPage() {
           </Link>
         </div>
         <div className="flex flex-col space-y-6">
-          {heatmaps.map((heatmap) => (
+          {heatmapsWithData.map((heatmap) => (
             <HeatmapCard 
               key={heatmap.id}
               config={heatmap}
-              data={[]} // This will be fixed in point 3
+              data={heatmap.initialData}
               isEmbed={false}
             />
           ))}

@@ -73,13 +73,6 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
   }, [data])
 
   useEffect(() => {
-    // Initialize data when component mounts
-    if (initialData) {
-      setData(initialData)
-    }
-  }, [initialData])
-
-  useEffect(() => {
     // Get unique years from data
     const years = Array.from(new Set(
       data.map(d => new Date(d.date).getFullYear().toString())
@@ -149,6 +142,23 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
     }
   }
 
+  // Initialize with any provided data and refresh in background
+  useEffect(() => {
+    if (initialData?.length > 0) {
+      setData(initialData)
+    }
+    refreshData()
+  }, [])
+
+  // Generate embed URL
+  const embedUrl = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      const baseUrl = window.location.origin
+      return `${baseUrl}/embed/${config.id}`
+    }
+    return ''
+  }, [config.id])
+
   const handleDelete = async () => {
     try {
       setIsLoading(true)
@@ -168,11 +178,6 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
       setIsLoading(false)
     }
   }
-
-  // Load data automatically on mount
-  useEffect(() => {
-    refreshData()
-  }, []) // Run once on mount
 
   return (
     <Card className="overflow-hidden max-w-[1000px] mx-auto">
@@ -223,8 +228,8 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
                 variant="ghost"
                 size="icon"
                 onClick={() => {
-                  navigator.clipboard.writeText(embedCode)
-                  toast.success('Embed code copied to clipboard')
+                  navigator.clipboard.writeText(embedUrl)
+                  toast.success('Embed link copied to clipboard')
                 }}
               >
                 <Icons.link className="h-4 w-4" />
@@ -260,8 +265,8 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => {
-                      navigator.clipboard.writeText(embedCode)
-                      toast.success('Embed code copied to clipboard')
+                      navigator.clipboard.writeText(embedUrl)
+                      toast.success('Embed link copied to clipboard')
                     }}
                   >
                     <Icons.link className="mr-2 h-4 w-4" />
