@@ -26,26 +26,37 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
       const email = formData.get("email") as string
       const password = formData.get("password") as string
 
+      if (!email || !password) {
+        throw new Error("Please enter both email and password")
+      }
+
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${location.origin}/auth/callback`,
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            data: {
+              email: email,
+            }
           },
         })
         if (error) throw error
         toast.success("Check your email to confirm your account")
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error, data } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
         if (error) throw error
-        router.refresh()
-        router.push("/dashboard")
+        if (data?.user) {
+          toast.success("Successfully signed in")
+          router.refresh()
+          router.push("/dashboard")
+        }
       }
     } catch (error) {
+      console.error("Auth error:", error)
       toast.error(error.message)
     } finally {
       setIsLoading(false)
