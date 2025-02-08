@@ -16,49 +16,37 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
   const supabase = createClientComponentClient()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isSignUp, setIsSignUp] = useState<boolean>(false)
-  const [email, setEmail] = useState<string>("")
-  const [password, setPassword] = useState<string>("")
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
+      const formData = new FormData(e.currentTarget)
+      const email = formData.get("email") as string
+      const password = formData.get("password") as string
+
       if (isSignUp) {
-        const { error, data } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${location.origin}/auth/callback`,
           },
         })
-        if (error) {
-          toast.error(error.message)
-          return
-        }
-
-        toast.success("Check your email for the confirmation link")
+        if (error) throw error
+        toast.success("Check your email to confirm your account")
       } else {
-        const { error, data } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
-        if (error) {
-          if (error.message === 'Invalid login credentials') {
-            toast.error('Invalid email or password')
-          } else {
-            toast.error(error.message)
-          }
-          return
-        }
-        
-        toast.success('Successfully signed in')
+        if (error) throw error
         router.refresh()
         router.push("/dashboard")
       }
     } catch (error) {
-      console.error("Authentication error:", error)
-      toast.error('An unexpected error occurred')
+      toast.error(error.message)
     } finally {
       setIsLoading(false)
     }
@@ -103,8 +91,6 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
               autoComplete="email"
               autoCorrect="off"
               disabled={isLoading}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
@@ -116,8 +102,6 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
               type="password"
               autoComplete="current-password"
               disabled={isLoading}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
             />
