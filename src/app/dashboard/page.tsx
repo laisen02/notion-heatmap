@@ -3,71 +3,47 @@ import { cookies } from "next/headers"
 import { HeatmapCard } from "@/components/heatmap/heatmap-card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-
-async function getHeatmapData(heatmapId: string) {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notion/data`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ heatmapId }),
-    cache: 'no-store',
-  })
-
-  if (!response.ok) {
-    console.error('Failed to fetch heatmap data:', await response.text())
-    return []
-  }
-
-  const { data } = await response.json()
-  return data
-}
+import { redirect } from "next/navigation"
 
 export default async function DashboardPage() {
   const supabase = createServerComponentClient({ cookies })
   
+  // Get current user
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) {
+    redirect('/auth')
+  }
+
+  // Get user's heatmaps
   const { data: heatmaps, error } = await supabase
     .from('heatmaps')
     .select('*')
-    .order('display_order', { ascending: true })
+    .eq('user_id', session.user.id) // Only get current user's heatmaps
+    .order('created_at', { ascending: false })
 
   if (error) {
     console.error('Error fetching heatmaps:', error)
-    return <div>Failed to load heatmaps</div>
+    return <div>Error loading heatmaps</div>
   }
 
-  // Fetch data for each heatmap
-  const heatmapsWithData = await Promise.all(
-    heatmaps.map(async (heatmap) => ({
-      config: heatmap,
-      data: await getHeatmapData(heatmap.id)
-    }))
-  )
+  // If no heatmaps, redirect to create page
+  if (heatmaps.length === 0) {
+    redirect('/create')
+  }
 
   return (
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Your Heatmaps</h1>
-        <Button asChild>
-          <Link href="/create">Create New Heatmap</Link>
-        </Button>
+        <Link href="/create">
+          <Button>Create New Heatmap</Button>
+        </Link>
       </div>
-
-      <div className="space-y-6">
-        {heatmapsWithData.map(({ config, data }) => (
-          <HeatmapCard
-            key={config.id}
-            config={config}
-            data={data}
-          />
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {heatmaps.map((heatmap) => (
+          <HeatmapCard key={heatmap.id} heatmap={heatmap} />
         ))}
       </div>
-
-      {heatmaps.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No heatmaps yet. Create your first one!</p>
-        </div>
-      )}
     </div>
   )
 } 

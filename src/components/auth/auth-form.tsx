@@ -22,7 +22,6 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
     setIsLoading(true)
 
     try {
-      // Get form elements
       const form = e.currentTarget
       const emailInput = form.querySelector<HTMLInputElement>('input[type="email"]')
       const passwordInput = form.querySelector<HTMLInputElement>('input[type="password"]')
@@ -35,6 +34,17 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
       }
 
       if (isSignUp) {
+        // Check if user exists
+        const { data: existingUser } = await supabase
+          .from('users')
+          .select('email')
+          .eq('email', email)
+          .single()
+
+        if (existingUser) {
+          throw new Error("An account with this email already exists. Please sign in instead.")
+        }
+
         const { error } = await supabase.auth.signUp({
           email,
           password,
