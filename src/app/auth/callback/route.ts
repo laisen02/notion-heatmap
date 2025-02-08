@@ -13,10 +13,12 @@ export async function GET(request: Request) {
     
     try {
       if (type === 'recovery') {
-        // Handle password reset
+        // For password reset, exchange code for session
+        await supabase.auth.exchangeCodeForSession(code)
+        // Then redirect to reset password page
         return NextResponse.redirect(`${requestUrl.origin}/auth/reset-password`)
       } else {
-        // Handle normal sign in
+        // For normal sign in/up
         await supabase.auth.exchangeCodeForSession(code)
         return NextResponse.redirect(`${requestUrl.origin}/dashboard`)
       }

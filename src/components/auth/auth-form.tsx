@@ -35,45 +35,54 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
       }
 
       if (isSignUp) {
-        // Check if user exists first
-        const { data: { user }, error: userError } = await supabase.auth.admin.getUserByEmail(email)
-        
-        if (user) {
-          toast.error(
-            <div className="flex flex-col gap-2">
-              <p>An account with this email already exists.</p>
-              <div className="flex gap-2">
-                <Button 
-                  variant="link" 
-                  className="h-auto p-0" 
-                  onClick={() => setIsSignUp(false)}
-                >
-                  Sign in instead
-                </Button>
-                <span>or</span>
-                <Button 
-                  variant="link" 
-                  className="h-auto p-0"
-                  onClick={() => router.push('/auth/forgot-password')}
-                >
-                  Reset password
-                </Button>
-              </div>
-            </div>
-          )
-          return
-        }
+        try {
+          // Check if user exists by attempting to sign in
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password: 'dummy-password-for-check'
+          })
 
-        // Proceed with signup if user doesn't exist
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
-        })
-        if (error) throw error
-        toast.success("Check your email to confirm your account")
+          // If no error or error is not "Invalid credentials", user exists
+          if (!signInError || signInError.message !== 'Invalid login credentials') {
+            toast.error(
+              <div className="flex flex-col gap-2">
+                <p>An account with this email already exists.</p>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="link" 
+                    className="h-auto p-0" 
+                    onClick={() => setIsSignUp(false)}
+                  >
+                    Sign in instead
+                  </Button>
+                  <span>or</span>
+                  <Button 
+                    variant="link" 
+                    className="h-auto p-0"
+                    onClick={() => router.push('/auth/forgot-password')}
+                  >
+                    Reset password
+                  </Button>
+                </div>
+              </div>
+            )
+            return
+          }
+
+          // Proceed with signup if user doesn't exist
+          const { error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/auth/callback`,
+            },
+          })
+          if (error) throw error
+          toast.success("Check your email to confirm your account")
+        } catch (error) {
+          console.error("Auth error:", error)
+          toast.error(error.message)
+        }
       } else {
         const { error, data } = await supabase.auth.signInWithPassword({
           email,
@@ -150,12 +159,14 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
               minLength={6}
             />
           </div>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && (
-              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            {isSignUp ? "Sign Up" : "Sign In"}
-          </Button>
+          <div className="flex items-center justify-between">
+            <Button type="submit" disabled={isLoading}>
+              {isLoading && (
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {isSignUp ? "Sign Up" : "Sign In"}
+            </Button>
+          </div>
         </div>
       </form>
       <div className="relative">
@@ -184,14 +195,6 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
       >
         {isSignUp ? "Already have an account? Sign in" : "Create an account"}
       </Button>
-      <div className="text-sm text-center">
-        <Link 
-          href="/auth/forgot-password"
-          className="text-muted-foreground hover:text-primary underline underline-offset-4"
-        >
-          Forgot your password?
-        </Link>
-      </div>
     </div>
   )
 } 
