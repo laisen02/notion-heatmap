@@ -2,9 +2,8 @@ import { Inter } from 'next/font/google'
 import '../styles/globals.css'
 import { MainNav } from '@/components/layout/nav'
 import { Toaster } from 'sonner'
+import { headers, cookies } from 'next/headers'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { ErrorBoundary } from '@/components/error-boundary'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -18,18 +17,32 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = createServerComponentClient({ cookies })
-  const { data: { session } } = await supabase.auth.getSession()
+  const cookieStore = cookies()
+  const supabase = createServerComponentClient({ cookies: () => cookieStore })
 
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ErrorBoundary>
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    return (
+      <html lang="en" suppressHydrationWarning>
+        <body className={inter.className}>
           {session && <MainNav />}
           <main>{children}</main>
           <Toaster />
-        </ErrorBoundary>
-      </body>
-    </html>
-  )
+        </body>
+      </html>
+    )
+  } catch (error) {
+    console.error('Layout error:', error)
+    return (
+      <html lang="en" suppressHydrationWarning>
+        <body className={inter.className}>
+          <main>{children}</main>
+          <Toaster />
+        </body>
+      </html>
+    )
+  }
 }

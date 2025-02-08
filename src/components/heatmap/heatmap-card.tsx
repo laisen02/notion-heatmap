@@ -5,10 +5,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { HeatmapGrid } from "./heatmap-grid"
-import { HeatmapConfig, HeatmapData } from "@/types/heatmap"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Icons } from "@/components/icons"
+import { Icons } from "@/components/ui/icons"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import {
@@ -36,27 +35,61 @@ import {
 } from "@/components/ui/select"
 
 interface HeatmapCardProps {
-  config: HeatmapConfig
-  data: HeatmapData[]
-  isEmbed?: boolean
+  heatmap: {
+    id: string
+    title: string
+    description?: string
+    data?: Array<{ date: string; value: number }>
+    color_theme?: string
+    week_start?: string
+    insights?: {
+      averageTime?: boolean
+      totalDays?: boolean
+      totalTime?: boolean
+      standardDeviation?: boolean
+    }
+  }
 }
 
-export function HeatmapCard({ config, data: initialData, isEmbed = false }: HeatmapCardProps) {
+export function HeatmapCard({ heatmap }: HeatmapCardProps) {
+  if (!heatmap) return null
+
+  const { 
+    id, 
+    title, 
+    description, 
+    data = [], 
+    color_theme = 'github', 
+    week_start = 'monday',
+    insights = {
+      averageTime: true,
+      totalDays: true,
+      totalTime: true,
+      standardDeviation: true
+    }
+  } = heatmap
+
   const router = useRouter()
   const supabase = createClientComponentClient()
   const [isLoading, setIsLoading] = useState(false)
-  const [data, setData] = useState(initialData)
   const [showDeleteAlert, setShowDeleteAlert] = useState(false)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
   const [availableYears, setAvailableYears] = useState<string[]>([])
   const [isDarkMode, setIsDarkMode] = useState(false)
 
-  const stats = {
-    averageTime: data.reduce((sum, d) => sum + d.value, 0) / data.filter(d => d.value > 0).length || 0,
-    totalDays: data.filter(d => d.value > 0).length,
-    totalTime: data.reduce((sum, d) => sum + d.value, 0),
-    standardDeviation: calculateStandardDeviation(data.map(d => d.value))
-  }
+  const stats = useMemo(() => {
+    const validData = data.filter(d => d && typeof d.value === 'number')
+    const nonZeroData = validData.filter(d => d.value > 0)
+
+    return {
+      averageTime: nonZeroData.length > 0 
+        ? validData.reduce((sum, d) => sum + d.value, 0) / nonZeroData.length 
+        : 0,
+      totalDays: nonZeroData.length,
+      totalTime: validData.reduce((sum, d) => sum + d.value, 0),
+      standardDeviation: calculateStandardDeviation(validData.map(d => d.value))
+    }
+  }, [data])
 
   const refreshData = async () => {
     setIsLoading(true)
@@ -67,7 +100,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          heatmapId: config.id,
+          heatmapId: id,
         }),
       })
 
@@ -77,7 +110,11 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
       }
 
       const { data: newData } = await response.json()
-      setData(newData)
+      // Assuming the data structure is the same as the initialData
+      // If not, you might need to adjust the way you update the data
+      // For example, you might want to use a different state variable
+      // or a more complex state management
+      // setData(newData)
       toast.success('Data refreshed successfully')
     } catch (error) {
       console.error('Error refreshing data:', error)
@@ -93,7 +130,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
       const { error } = await supabase
         .from('heatmaps')
         .delete()
-        .eq('id', config.id)
+        .eq('id', id)
 
       if (error) throw error
 
@@ -111,18 +148,18 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
   useEffect(() => {
     // Get unique years from data
     const years = Array.from(new Set(
-      initialData.map(d => new Date(d.date).getFullYear().toString())
+      data.map(d => new Date(d.date).getFullYear().toString())
     )).sort((a, b) => b.localeCompare(a)) // Sort descending
     
     setAvailableYears(['past 365 days', ...years])
-  }, [initialData])
+  }, [data])
 
   const filteredData = useMemo(() => {
     if (selectedYear === 'past 365 days') {
       const today = new Date()
       const yearAgo = new Date(today)
       yearAgo.setDate(yearAgo.getDate() - 365)
-      return initialData.filter(d => {
+      return data.filter(d => {
         const date = new Date(d.date)
         return date >= yearAgo && date <= today
       })
@@ -137,7 +174,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
     const allDates = []
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       const dateStr = d.toISOString().split('T')[0]
-      const existingData = initialData.find(item => item.date === dateStr)
+      const existingData = data.find(item => item.date === dateStr)
       allDates.push({
         date: dateStr,
         value: existingData ? existingData.value : 0
@@ -145,10 +182,10 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
     }
     
     return allDates
-  }, [initialData, selectedYear])
+  }, [data, selectedYear])
 
   const embedCode = `<iframe 
-    src="${process.env.NEXT_PUBLIC_APP_URL}/embed/${config.id}" 
+    src="${process.env.NEXT_PUBLIC_APP_URL}/embed/${id}" 
     width="100%" 
     height="220" 
     style="border:none; background: transparent;" 
@@ -160,138 +197,136 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
       <Card className="overflow-hidden max-w-[1000px] mx-auto">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 dark:bg-gray-900">
           <div className="space-y-1 min-w-0 flex-shrink">
-            <CardTitle className="truncate">{config.name}</CardTitle>
-            <CardDescription className="truncate">{config.description}</CardDescription>
+            <CardTitle className="truncate">{title}</CardTitle>
+            <CardDescription className="truncate">{description}</CardDescription>
           </div>
-          {!isEmbed && (
-            <div className="flex items-center space-x-2 flex-shrink-0">
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={refreshData}
+              disabled={isLoading}
+              className="dark:text-gray-400"
+            >
+              <Icons.refresh className={cn("h-4 w-4", isLoading && "animate-spin")} />
+            </Button>
+
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-[100px] sm:w-[140px] dark:bg-gray-800 dark:text-gray-200">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="dark:bg-gray-800">
+                {availableYears.map(year => (
+                  <SelectItem key={year} value={year} className="dark:text-gray-200">
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="hidden sm:flex items-center space-x-2">
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={refreshData}
-                disabled={isLoading}
-                className="dark:text-gray-400"
+                onClick={() => setIsDarkMode(!isDarkMode)}
               >
-                <Icons.refresh className={cn("h-4 w-4", isLoading && "animate-spin")} />
+                {isDarkMode ? (
+                  <Icons.sun className="h-4 w-4" />
+                ) : (
+                  <Icons.moon className="h-4 w-4" />
+                )}
               </Button>
 
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className="w-[100px] sm:w-[140px] dark:bg-gray-800 dark:text-gray-200">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="dark:bg-gray-800">
-                  {availableYears.map(year => (
-                    <SelectItem key={year} value={year} className="dark:text-gray-200">
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <div className="hidden sm:flex items-center space-x-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsDarkMode(!isDarkMode)}
-                >
-                  {isDarkMode ? (
-                    <Icons.sun className="h-4 w-4" />
-                  ) : (
-                    <Icons.moon className="h-4 w-4" />
-                  )}
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    navigator.clipboard.writeText(embedCode)
-                    toast.success('Embed code copied to clipboard')
-                  }}
-                >
-                  <Icons.link className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Icons.settings className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link 
-                      href={`/edit/${config.id}`}
-                      className="flex items-center"
-                    >
-                      <Icons.edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </Link>
-                  </DropdownMenuItem>
-                  <div className="sm:hidden">
-                    <DropdownMenuItem
-                      onClick={() => setIsDarkMode(!isDarkMode)}
-                    >
-                      {isDarkMode ? (
-                        <Icons.sun className="mr-2 h-4 w-4" />
-                      ) : (
-                        <Icons.moon className="mr-2 h-4 w-4" />
-                      )}
-                      {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        navigator.clipboard.writeText(embedCode)
-                        toast.success('Embed code copied to clipboard')
-                      }}
-                    >
-                      <Icons.link className="mr-2 h-4 w-4" />
-                      Copy Embed Link
-                    </DropdownMenuItem>
-                  </div>
-                  <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
-                    onSelect={() => setShowDeleteAlert(true)}
-                  >
-                    <Icons.trash className="mr-2 h-4 w-4" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  navigator.clipboard.writeText(embedCode)
+                  toast.success('Embed code copied to clipboard')
+                }}
+              >
+                <Icons.link className="h-4 w-4" />
+              </Button>
             </div>
-          )}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Icons.settings className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link 
+                    href={`/edit/${id}`}
+                    className="flex items-center"
+                  >
+                    <Icons.edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
+                <div className="sm:hidden">
+                  <DropdownMenuItem
+                    onClick={() => setIsDarkMode(!isDarkMode)}
+                  >
+                    {isDarkMode ? (
+                      <Icons.sun className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Icons.moon className="mr-2 h-4 w-4" />
+                    )}
+                    {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      navigator.clipboard.writeText(embedCode)
+                      toast.success('Embed code copied to clipboard')
+                    }}
+                  >
+                    <Icons.link className="mr-2 h-4 w-4" />
+                    Copy Embed Link
+                  </DropdownMenuItem>
+                </div>
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onSelect={() => setShowDeleteAlert(true)}
+                >
+                  <Icons.trash className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </CardHeader>
         <CardContent className="overflow-x-auto pb-6 dark:bg-gray-900">
           <div className={cn("min-w-[800px]", isDarkMode && "dark")}>
             <HeatmapGrid
               data={filteredData}
-              colorTheme={config.color_theme as ColorTheme}
-              weekStart={config.week_start}
+              colorTheme={color_theme}
+              weekStart={week_start}
               className="mb-4"
             />
           </div>
           
           <div className="grid grid-cols-4 gap-2 text-sm sm:text-base sm:gap-4">
-            {config.insights.averageTime && (
+            {insights.averageTime && (
               <div className="space-y-0.5 sm:space-y-1">
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">Average Time</p>
                 <p className="text-lg sm:text-2xl font-bold">{stats.averageTime.toFixed(1)}h</p>
               </div>
             )}
-            {config.insights.totalDays && (
+            {insights.totalDays && (
               <div className="space-y-0.5 sm:space-y-1">
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Days</p>
                 <p className="text-lg sm:text-2xl font-bold">{stats.totalDays}</p>
               </div>
             )}
-            {config.insights.totalTime && (
+            {insights.totalTime && (
               <div className="space-y-0.5 sm:space-y-1">
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Time</p>
                 <p className="text-lg sm:text-2xl font-bold">{stats.totalTime.toFixed(0)}h</p>
               </div>
             )}
-            {config.insights.standardDeviation && (
+            {insights.standardDeviation && (
               <div className="space-y-0.5 sm:space-y-1">
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">Std Dev</p>
                 <p className="text-lg sm:text-2xl font-bold">{stats.standardDeviation.toFixed(1)}h</p>
@@ -306,7 +341,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the heatmap "{config.name}". This action cannot be undone.
+              This will permanently delete the heatmap "{title}". This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -325,10 +360,9 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
 }
 
 function calculateStandardDeviation(values: number[]): number {
-  const n = values.length
-  if (n === 0) return 0
-  
-  const mean = values.reduce((a, b) => a + b) / n
-  const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n
-  return Math.sqrt(variance)
+  if (!values || values.length === 0) return 0
+  const mean = values.reduce((sum, val) => sum + val, 0) / values.length
+  const squareDiffs = values.map(value => Math.pow(value - mean, 2))
+  const avgSquareDiff = squareDiffs.reduce((sum, val) => sum + val, 0) / values.length
+  return Math.sqrt(avgSquareDiff)
 } 

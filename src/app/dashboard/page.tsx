@@ -4,20 +4,16 @@ import { HeatmapCard } from "@/components/heatmap/heatmap-card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { ErrorMessage } from "@/components/error-message"
 
 export default async function DashboardPage() {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createServerComponentClient({ cookies: () => cookieStore })
     
-    // Get current user
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
-    if (sessionError) {
-      console.error('Session error:', sessionError)
-      redirect('/auth')
-    }
-
-    if (!session) {
+    if (sessionError || !session) {
       redirect('/auth')
     }
 
@@ -30,17 +26,7 @@ export default async function DashboardPage() {
 
     if (heatmapsError) {
       console.error('Error fetching heatmaps:', heatmapsError)
-      return (
-        <div className="container py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Error Loading Heatmaps</h1>
-            <p className="text-muted-foreground mb-4">Unable to load your heatmaps. Please try again later.</p>
-            <Button asChild>
-              <Link href="/create">Create New Heatmap</Link>
-            </Button>
-          </div>
-        </div>
-      )
+      return <ErrorMessage />
     }
 
     // If no heatmaps, show empty state
@@ -50,9 +36,9 @@ export default async function DashboardPage() {
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Welcome to Notion Heatmap!</h1>
             <p className="text-muted-foreground mb-4">Get started by creating your first heatmap.</p>
-            <Button asChild>
-              <Link href="/create">Create Your First Heatmap</Link>
-            </Button>
+            <Link href="/create">
+              <Button>Create Your First Heatmap</Button>
+            </Link>
           </div>
         </div>
       )
@@ -63,9 +49,9 @@ export default async function DashboardPage() {
       <div className="container py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Your Heatmaps</h1>
-          <Button asChild>
-            <Link href="/create">Create New Heatmap</Link>
-          </Button>
+          <Link href="/create">
+            <Button>Create New Heatmap</Button>
+          </Link>
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {heatmaps.map((heatmap) => (
@@ -79,16 +65,6 @@ export default async function DashboardPage() {
     )
   } catch (error) {
     console.error('Dashboard error:', error)
-    return (
-      <div className="container py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Something went wrong</h1>
-          <p className="text-muted-foreground mb-4">Please try refreshing the page.</p>
-          <Button onClick={() => window.location.reload()}>
-            Refresh Page
-          </Button>
-        </div>
-      </div>
-    )
+    return <ErrorMessage />
   }
 } 
