@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function DashboardPage() {
   const cookieStore = cookies()
   const supabase = createServerComponentClient({ cookies: () => cookieStore })
@@ -15,7 +18,7 @@ export default async function DashboardPage() {
     
     if (sessionError) {
       console.error('Session error:', sessionError)
-      redirect('/auth')
+      throw new Error('Failed to get session')
     }
 
     if (!session) {
@@ -34,8 +37,12 @@ export default async function DashboardPage() {
       throw new Error('Failed to load heatmaps')
     }
 
-    // If no heatmaps, show empty state
-    if (!heatmaps || heatmaps.length === 0) {
+    if (!heatmaps) {
+      throw new Error('No heatmaps found')
+    }
+
+    // Show empty state if no heatmaps
+    if (heatmaps.length === 0) {
       return (
         <div className="container py-8">
           <div className="text-center">
@@ -62,7 +69,7 @@ export default async function DashboardPage() {
           {heatmaps.map((heatmap) => (
             <HeatmapCard 
               key={heatmap.id} 
-              heatmap={heatmap} 
+              heatmap={heatmap}
             />
           ))}
         </div>
