@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Icons } from "@/components/ui/icons"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
@@ -13,6 +14,17 @@ export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const supabase = createClientComponentClient()
+
+  // Check for session on mount
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        router.push('/auth')
+      }
+    }
+    checkSession()
+  }, [router, supabase.auth])
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,6 +73,9 @@ export default function ResetPasswordPage() {
               />
             </div>
             <Button type="submit" disabled={isLoading}>
+              {isLoading && (
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Reset Password
             </Button>
           </div>

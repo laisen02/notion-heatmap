@@ -36,14 +36,13 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
 
       if (isSignUp) {
         try {
-          // Check if user exists by attempting to sign in
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email,
-            password: 'dummy-password-for-check'
+          // First check if user exists
+          const { data: { user: existingUser } } = await supabase.auth.getUser()
+          const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
+            filter: `email.ilike.${email}`
           })
 
-          // If no error or error is not "Invalid credentials", user exists
-          if (!signInError || signInError.message !== 'Invalid login credentials') {
+          if (existingUser || (users && users.length > 0)) {
             toast.error(
               <div className="flex flex-col gap-2">
                 <p>An account with this email already exists.</p>
@@ -54,14 +53,6 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
                     onClick={() => setIsSignUp(false)}
                   >
                     Sign in instead
-                  </Button>
-                  <span>or</span>
-                  <Button 
-                    variant="link" 
-                    className="h-auto p-0"
-                    onClick={() => router.push('/auth/forgot-password')}
-                  >
-                    Reset password
                   </Button>
                 </div>
               </div>
