@@ -1,44 +1,20 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { HeatmapGrid } from "./heatmap-grid"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Icons } from "@/components/ui/icons"
-import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 
 interface Heatmap {
   id: string
   name: string
   created_at: string
   user_id: string
+  data?: any // Add this for heatmap data
 }
 
 interface HeatmapCardProps {
@@ -47,7 +23,28 @@ interface HeatmapCardProps {
 
 export function HeatmapCard({ heatmap }: HeatmapCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
+  const [heatmapData, setHeatmapData] = useState<any>(null)
   const supabase = createClientComponentClient()
+
+  useEffect(() => {
+    async function fetchHeatmapData() {
+      try {
+        const { data, error } = await supabase
+          .from('heatmap_data')
+          .select('*')
+          .eq('heatmap_id', heatmap.id)
+          .single()
+
+        if (error) throw error
+        setHeatmapData(data)
+      } catch (error) {
+        console.error('Error fetching heatmap data:', error)
+        toast.error("Failed to load heatmap data")
+      }
+    }
+
+    fetchHeatmapData()
+  }, [heatmap.id, supabase])
 
   const handleDelete = async () => {
     try {
@@ -60,7 +57,6 @@ export function HeatmapCard({ heatmap }: HeatmapCardProps) {
       if (error) throw error
       
       toast.success("Heatmap deleted successfully")
-      // Optionally refresh the page or update the UI
       window.location.reload()
     } catch (error) {
       console.error('Error deleting heatmap:', error)
@@ -76,9 +72,20 @@ export function HeatmapCard({ heatmap }: HeatmapCardProps) {
         <CardTitle>{heatmap.name}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground">
-          Created on {new Date(heatmap.created_at).toLocaleDateString()}
-        </p>
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Created on {new Date(heatmap.created_at).toLocaleDateString()}
+          </p>
+          {heatmapData && (
+            <div className="w-full aspect-square">
+              <HeatmapGrid 
+                data={heatmapData.data || []}
+                isInteractive={false}
+                showTooltip={true}
+              />
+            </div>
+          )}
+        </div>
       </CardContent>
       <CardFooter className="flex justify-between">
         <Link href={`/edit/${heatmap.id}`}>
