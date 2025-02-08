@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Icons } from "@/components/ui/icons"
 import { toast } from "sonner"
+import Link from "next/link"
 
 interface AuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -34,25 +35,41 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
       }
 
       if (isSignUp) {
-        // Check if user exists
-        const { data: existingUser } = await supabase
-          .from('users')
-          .select('email')
-          .eq('email', email)
-          .single()
-
-        if (existingUser) {
-          throw new Error("An account with this email already exists. Please sign in instead.")
+        // Check if user exists first
+        const { data: { user }, error: userError } = await supabase.auth.admin.getUserByEmail(email)
+        
+        if (user) {
+          toast.error(
+            <div className="flex flex-col gap-2">
+              <p>An account with this email already exists.</p>
+              <div className="flex gap-2">
+                <Button 
+                  variant="link" 
+                  className="h-auto p-0" 
+                  onClick={() => setIsSignUp(false)}
+                >
+                  Sign in instead
+                </Button>
+                <span>or</span>
+                <Button 
+                  variant="link" 
+                  className="h-auto p-0"
+                  onClick={() => router.push('/auth/forgot-password')}
+                >
+                  Reset password
+                </Button>
+              </div>
+            </div>
+          )
+          return
         }
 
+        // Proceed with signup if user doesn't exist
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/auth/callback`,
-            data: {
-              email: email,
-            }
           },
         })
         if (error) throw error
@@ -167,6 +184,14 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
       >
         {isSignUp ? "Already have an account? Sign in" : "Create an account"}
       </Button>
+      <div className="text-sm text-center">
+        <Link 
+          href="/auth/forgot-password"
+          className="text-muted-foreground hover:text-primary underline underline-offset-4"
+        >
+          Forgot your password?
+        </Link>
+      </div>
     </div>
   )
 } 
