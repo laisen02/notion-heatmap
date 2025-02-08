@@ -2,7 +2,6 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { AuthForm } from "@/components/auth/auth-form"
-import { ResetPasswordButton } from "@/components/auth/reset-password-button"
 
 export default async function AuthPage() {
   try {
@@ -26,9 +25,6 @@ export default async function AuthPage() {
             </p>
           </div>
           <AuthForm />
-          <div className="text-center space-y-2">
-      
-          </div>
         </div>
       </div>
     )
