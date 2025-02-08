@@ -30,7 +30,8 @@ export default async function DashboardPage() {
       .order('created_at', { ascending: false })
 
     if (heatmapsError) {
-      throw new Error(`Failed to fetch heatmaps: ${heatmapsError.message}`)
+      console.error('Error fetching heatmaps:', heatmapsError)
+      throw new Error('Failed to load heatmaps')
     }
 
     // If no heatmaps, show empty state
@@ -77,7 +78,7 @@ export default async function DashboardPage() {
             {error instanceof Error ? error.message : 'Please try refreshing the page'}
           </p>
           <Link href="/dashboard">
-            <Button>Refresh Page</Button>
+            <Button>Try Again</Button>
           </Link>
         </div>
       </div>

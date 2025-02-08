@@ -10,6 +10,11 @@ import { Icons } from "@/components/ui/icons"
 import { toast } from "sonner"
 import Link from "next/link"
 
+interface AuthError {
+  message: string
+  status?: number
+}
+
 interface AuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function AuthForm({ className, ...props }: AuthFormProps) {
@@ -17,103 +22,54 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
   const supabase = createClientComponentClient()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isSignUp, setIsSignUp] = useState<boolean>(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const form = e.currentTarget
-      const emailInput = form.querySelector<HTMLInputElement>('input[type="email"]')
-      const passwordInput = form.querySelector<HTMLInputElement>('input[type="password"]')
+      // First check if user exists
+      const { data: { user: existingUser }, error: getUserError } = await supabase.auth.getUser()
 
-      const email = emailInput?.value
-      const password = passwordInput?.value
-
-      if (!email || !password) {
-        throw new Error("Please enter both email and password")
+      if (getUserError) {
+        throw getUserError
       }
 
-      if (isSignUp) {
-        try {
-          // First check if user exists
-          const { data: { user: existingUser } } = await supabase.auth.getUser()
-          const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
-            filter: `email.ilike.${email}`
-          })
+      // Sign in or sign up based on whether user exists
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-          if (existingUser || (users && users.length > 0)) {
-            toast.error(
-              <div className="flex flex-col gap-2">
-                <p>An account with this email already exists.</p>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="link" 
-                    className="h-auto p-0" 
-                    onClick={() => setIsSignUp(false)}
-                  >
-                    Sign in instead
-                  </Button>
-                </div>
-              </div>
-            )
-            return
-          }
+      if (error) throw error
 
-          // Proceed with signup if user doesn't exist
-          const { error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              emailRedirectTo: `${window.location.origin}/auth/callback`,
-            },
-          })
-          if (error) throw error
-          toast.success("Check your email to confirm your account")
-        } catch (error) {
-          console.error("Auth error:", error)
-          toast.error(error.message)
-        }
-      } else {
-        const { error, data } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-        if (error) throw error
-        if (data?.user) {
-          toast.success("Successfully signed in")
-          router.refresh()
-          router.push("/dashboard")
-        }
-      }
+      router.push('/dashboard')
+      router.refresh()
     } catch (error) {
-      console.error("Auth error:", error)
-      toast.error(error.message)
+      const authError = error as AuthError
+      console.error("Auth error:", authError)
+      toast.error(authError.message || "Authentication failed")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleGoogleSignIn = async () => {
+  const handleOAuthSignIn = async () => {
     try {
       setIsLoading(true)
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
+        provider: 'google',
         options: {
-          redirectTo: `${location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       })
-      if (error) {
-        toast.error(error.message)
-        return
-      }
+      if (error) throw error
     } catch (error) {
-      console.error("Google sign in error:", error)
-      toast.error("Failed to sign in with Google")
+      const authError = error as AuthError
+      console.error("OAuth error:", authError)
+      toast.error(authError.message || "Failed to sign in with Google")
     } finally {
       setIsLoading(false)
     }
@@ -133,6 +89,8 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
               autoCapitalize="none"
               autoComplete="email"
               autoCorrect="off"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
               required
             />
@@ -145,6 +103,8 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
               placeholder="••••••••"
               type="password"
               autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
               required
               minLength={6}
@@ -155,7 +115,7 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
               {isLoading && (
                 <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {isSignUp ? "Sign Up" : "Sign In"}
+              Sign In
             </Button>
             {!isSignUp && (
               <div className="text-sm text-center">
@@ -180,7 +140,7 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
           </span>
         </div>
       </div>
-      <Button variant="outline" type="button" onClick={handleGoogleSignIn} disabled={isLoading}>
+      <Button variant="outline" disabled={isLoading} onClick={handleOAuthSignIn}>
         {isLoading ? (
           <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
         ) : (
