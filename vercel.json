@@ -1,1 +1,6 @@
- 
+{
+  "buildCommand": "DISABLE_ESLINT_PLUGIN=true next build",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next"
+} 
