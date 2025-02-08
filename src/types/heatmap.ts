@@ -1,14 +1,4 @@
-export type ColorTheme = 
-  | 'orange' 
-  | 'yellow' 
-  | 'green' 
-  | 'blue' 
-  | 'purple' 
-  | 'pink' 
-  | 'red' 
-  | 'brown' 
-  | 'gray' 
-  | 'lightgray'
+export type ColorTheme = 'orange' | 'yellow' | 'green' | 'blue' | 'purple' | 'pink' | 'red' | 'brown' | 'gray' | 'lightgray'
 
 export interface HeatmapData {
   date: string

@@ -1,40 +1,161 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { HeatmapGrid } from "./heatmap-grid"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { HeatmapConfig, HeatmapData } from "@/types/heatmap"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Icons } from "@/components/ui/icons"
+import { Icons } from "@/components/icons"
+import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-
-interface Heatmap {
-  id: string
-  name: string
-  created_at: string
-  user_id: string
-  data: number[][] // Update this to match your schema
-}
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface HeatmapCardProps {
-  heatmap: Heatmap
+  config: HeatmapConfig
+  data: HeatmapData[]
+  isEmbed?: boolean
 }
 
-export function HeatmapCard({ heatmap }: HeatmapCardProps) {
-  const [isDeleting, setIsDeleting] = useState(false)
+export function HeatmapCard({ config, data: initialData, isEmbed = false }: HeatmapCardProps) {
+  const router = useRouter()
   const supabase = createClientComponentClient()
+  const [isLoading, setIsLoading] = useState(false)
+  const [data, setData] = useState<HeatmapData[]>(initialData || [])
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false)
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
+  const [availableYears, setAvailableYears] = useState<string[]>([])
+  const [isDarkMode, setIsDarkMode] = useState(false)
 
-  // Initialize empty grid if no data
-  const gridData = heatmap.data || Array(7).fill(Array(7).fill(0))
+  const stats = useMemo(() => {
+    if (!data || data.length === 0) {
+      return {
+        averageTime: 0,
+        totalDays: 0,
+        totalTime: 0,
+        standardDeviation: 0
+      }
+    }
+
+    const nonZeroValues = data.filter(d => d.value > 0)
+    const totalTime = data.reduce((sum, d) => sum + d.value, 0)
+
+    return {
+      averageTime: nonZeroValues.length > 0 ? totalTime / nonZeroValues.length : 0,
+      totalDays: nonZeroValues.length,
+      totalTime,
+      standardDeviation: calculateStandardDeviation(data.map(d => d.value))
+    }
+  }, [data])
+
+  useEffect(() => {
+    // Initialize data when component mounts
+    if (initialData) {
+      setData(initialData)
+    }
+  }, [initialData])
+
+  useEffect(() => {
+    // Get unique years from data
+    const years = Array.from(new Set(
+      data.map(d => new Date(d.date).getFullYear().toString())
+    )).sort((a, b) => b.localeCompare(a)) // Sort descending
+    
+    setAvailableYears(['past 365 days', ...years])
+  }, [data])
+
+  const filteredData = useMemo(() => {
+    if (!data || data.length === 0) return []
+
+    if (selectedYear === 'past 365 days') {
+      const today = new Date()
+      const yearAgo = new Date(today)
+      yearAgo.setDate(yearAgo.getDate() - 365)
+      return data.filter(d => {
+        const date = new Date(d.date)
+        return date >= yearAgo && date <= today
+      })
+    }
+
+    // For specific years, generate all dates for that year
+    const year = parseInt(selectedYear)
+    const startDate = new Date(year, 0, 1)
+    const endDate = new Date(year, 11, 31)
+    
+    // Generate all dates for the year
+    const allDates = []
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0]
+      const existingData = data.find(item => item.date === dateStr)
+      allDates.push({
+        date: dateStr,
+        value: existingData ? existingData.value : 0
+      })
+    }
+    
+    return allDates
+  }, [data, selectedYear])
+
+  const refreshData = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/notion/data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          heatmapId: config.id,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to fetch data')
+      }
+
+      const { data: newData } = await response.json()
+      setData(newData)
+      toast.success('Data refreshed successfully')
+    } catch (error) {
+      console.error('Error refreshing data:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to refresh data')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleDelete = async () => {
     try {
-      setIsDeleting(true)
+      setIsLoading(true)
       const { error } = await supabase
         .from('heatmaps')
         .delete()
-        .eq('id', heatmap.id)
+        .eq('id', config.id)
 
       if (error) throw error
       
@@ -44,50 +165,82 @@ export function HeatmapCard({ heatmap }: HeatmapCardProps) {
       console.error('Error deleting heatmap:', error)
       toast.error("Failed to delete heatmap")
     } finally {
-      setIsDeleting(false)
+      setIsLoading(false)
     }
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{heatmap.name}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Created on {new Date(heatmap.created_at).toLocaleDateString()}
-          </p>
-          <div className="w-full aspect-square">
-            <HeatmapGrid 
-              data={gridData}
-              isInteractive={false}
-              showTooltip={true}
-            />
-          </div>
+    <Card className="overflow-hidden max-w-[1000px] mx-auto">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 dark:bg-gray-900">
+        <div className="space-y-1 min-w-0 flex-shrink">
+          <CardTitle className="truncate">{config.name}</CardTitle>
+          <CardDescription className="truncate">{config.description}</CardDescription>
         </div>
+        {!isEmbed && (
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" onClick={refreshData} disabled={isLoading}>
+              {isLoading ? (
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Icons.refresh className="mr-2 h-4 w-4" />
+              )}
+              Refresh
+            </Button>
+            <Button 
+              variant="destructive" 
+              size="sm"
+              onClick={handleDelete}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Icons.trash className="mr-2 h-4 w-4" />
+              )}
+              Delete
+            </Button>
+          </div>
+        )}
+      </CardHeader>
+      <CardContent className="overflow-x-auto pb-6 dark:bg-gray-900">
+        <div className={cn("min-w-[800px]", isDarkMode && "dark")}>
+          <HeatmapGrid
+            data={filteredData}
+            colorTheme={config.color_theme as ColorTheme}
+            weekStart={config.week_start}
+            className="mb-4"
+          />
+        </div>
+        {/* Stats section */}
+        {config.insights && (
+          <div className="grid grid-cols-4 gap-4 mt-4">
+            {config.insights.averageTime && (
+              <div>
+                <p className="text-sm text-muted-foreground">Average Time</p>
+                <p className="text-2xl font-bold">{stats.averageTime.toFixed(1)}h</p>
+              </div>
+            )}
+            {config.insights.totalDays && (
+              <div>
+                <p className="text-sm text-muted-foreground">Total Days</p>
+                <p className="text-2xl font-bold">{stats.totalDays}</p>
+              </div>
+            )}
+            {config.insights.totalTime && (
+              <div>
+                <p className="text-sm text-muted-foreground">Total Time</p>
+                <p className="text-2xl font-bold">{stats.totalTime.toFixed(0)}h</p>
+              </div>
+            )}
+            {config.insights.standardDeviation && (
+              <div>
+                <p className="text-sm text-muted-foreground">Std Dev</p>
+                <p className="text-2xl font-bold">{stats.standardDeviation.toFixed(1)}h</p>
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <Link href={`/edit/${heatmap.id}`}>
-          <Button variant="outline" size="sm">
-            <Icons.edit className="mr-2 h-4 w-4" />
-            Edit
-          </Button>
-        </Link>
-        <Button 
-          variant="destructive" 
-          size="sm"
-          onClick={handleDelete}
-          disabled={isDeleting}
-        >
-          {isDeleting ? (
-            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Icons.trash className="mr-2 h-4 w-4" />
-          )}
-          Delete
-        </Button>
-      </CardFooter>
     </Card>
   )
 }

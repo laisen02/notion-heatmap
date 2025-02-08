@@ -24,20 +24,25 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
-export interface TooltipProps {
+export function Tooltip({
+  content,
+  children,
+  delayDuration = 0,
+  ...props
+}: {
   content: React.ReactNode
   children: React.ReactNode
   delayDuration?: number
-}
+}) {
+  if (!content) return <>{children}</>
 
-export function Tooltip({ content, children, delayDuration = 200 }: TooltipProps) {
   return (
     <TooltipProvider>
       <TooltipRoot delayDuration={delayDuration}>
         <TooltipTrigger asChild>
           {children}
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent {...props}>
           {content}
         </TooltipContent>
       </TooltipRoot>

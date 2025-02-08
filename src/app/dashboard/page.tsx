@@ -25,12 +25,12 @@ export default async function DashboardPage() {
       redirect('/auth')
     }
 
-    // Get user's heatmaps with data
+    // Get user's heatmaps
     const { data: heatmaps, error: heatmapsError } = await supabase
       .from('heatmaps')
-      .select('id, name, created_at, user_id, data')
+      .select('*')
       .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false })
+      .order('display_order', { ascending: true })
 
     if (heatmapsError) {
       console.error('Error fetching heatmaps:', heatmapsError)
@@ -68,8 +68,10 @@ export default async function DashboardPage() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {heatmaps.map((heatmap) => (
             <HeatmapCard 
-              key={heatmap.id} 
-              heatmap={heatmap}
+              key={heatmap.id}
+              config={heatmap}
+              data={[]} // This should be fetched from your Notion API
+              isEmbed={false}
             />
           ))}
         </div>
