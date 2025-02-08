@@ -65,12 +65,12 @@ export default async function DashboardPage() {
             <Button>Create New Heatmap</Button>
           </Link>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col space-y-6">
           {heatmaps.map((heatmap) => (
             <HeatmapCard 
               key={heatmap.id}
               config={heatmap}
-              data={[]} // This should be fetched from your Notion API
+              data={[]} // This will be fixed in point 3
               isEmbed={false}
             />
           ))}

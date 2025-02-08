@@ -4,6 +4,7 @@ import { MainNav } from '@/components/layout/nav'
 import { Toaster } from 'sonner'
 import { headers, cookies } from 'next/headers'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { SiteHeader } from "@/components/site-header"
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -28,8 +29,17 @@ export default async function RootLayout({
     return (
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className}>
-          {session && <MainNav />}
-          <main>{children}</main>
+          <div className="relative flex min-h-screen flex-col">
+            {session ? (
+              <>
+                <SiteHeader />
+                <MainNav />
+              </>
+            ) : (
+              <SiteHeader />
+            )}
+            <main className="flex-1">{children}</main>
+          </div>
           <Toaster />
         </body>
       </html>
@@ -39,7 +49,10 @@ export default async function RootLayout({
     return (
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className}>
-          <main>{children}</main>
+          <div className="relative flex min-h-screen flex-col">
+            <SiteHeader />
+            <main className="flex-1">{children}</main>
+          </div>
           <Toaster />
         </body>
       </html>

@@ -169,6 +169,11 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
     }
   }
 
+  // Load data automatically on mount
+  useEffect(() => {
+    refreshData()
+  }, []) // Run once on mount
+
   return (
     <Card className="overflow-hidden max-w-[1000px] mx-auto">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 dark:bg-gray-900">
@@ -177,28 +182,101 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
           <CardDescription className="truncate">{config.description}</CardDescription>
         </div>
         {!isEmbed && (
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={refreshData} disabled={isLoading}>
-              {isLoading ? (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Icons.refresh className="mr-2 h-4 w-4" />
-              )}
-              Refresh
-            </Button>
-            <Button 
-              variant="destructive" 
-              size="sm"
-              onClick={handleDelete}
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={refreshData}
               disabled={isLoading}
+              className="dark:text-gray-400"
             >
-              {isLoading ? (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Icons.trash className="mr-2 h-4 w-4" />
-              )}
-              Delete
+              <Icons.refresh className={cn("h-4 w-4", isLoading && "animate-spin")} />
             </Button>
+
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-[100px] sm:w-[140px] dark:bg-gray-800 dark:text-gray-200">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="dark:bg-gray-800">
+                {availableYears.map(year => (
+                  <SelectItem key={year} value={year} className="dark:text-gray-200">
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="hidden sm:flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsDarkMode(!isDarkMode)}
+              >
+                {isDarkMode ? (
+                  <Icons.sun className="h-4 w-4" />
+                ) : (
+                  <Icons.moon className="h-4 w-4" />
+                )}
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  navigator.clipboard.writeText(embedCode)
+                  toast.success('Embed code copied to clipboard')
+                }}
+              >
+                <Icons.link className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Icons.settings className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link 
+                    href={`/edit/${config.id}`}
+                    className="flex items-center"
+                  >
+                    <Icons.edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
+                <div className="sm:hidden">
+                  <DropdownMenuItem
+                    onClick={() => setIsDarkMode(!isDarkMode)}
+                  >
+                    {isDarkMode ? (
+                      <Icons.sun className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Icons.moon className="mr-2 h-4 w-4" />
+                    )}
+                    {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      navigator.clipboard.writeText(embedCode)
+                      toast.success('Embed code copied to clipboard')
+                    }}
+                  >
+                    <Icons.link className="mr-2 h-4 w-4" />
+                    Copy Embed Link
+                  </DropdownMenuItem>
+                </div>
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onSelect={() => setShowDeleteAlert(true)}
+                >
+                  <Icons.trash className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
       </CardHeader>
