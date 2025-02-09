@@ -1,30 +1,8 @@
-"use client"
-
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
-import { HeatmapCard } from "@/components/heatmap/heatmap-card"
-import { EmbedThemeProvider } from "@/context/theme-context"
+import { EmbedContent } from "@/components/embed/embed-content"
 
-async function getHeatmapData(heatmapId: string) {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notion/data`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ heatmapId }),
-    cache: 'no-store',
-  })
-
-  if (!response.ok) {
-    console.error('Failed to fetch heatmap data:', await response.text())
-    return []
-  }
-
-  const { data } = await response.json()
-  return data
-}
-
-// Combine both metadata declarations into one
+// Metadata can stay in server component
 export const metadata = {
   title: 'Notion Heatmap',
   description: 'Heatmap visualization',
@@ -50,6 +28,25 @@ export const metadata = {
   }
 }
 
+async function getHeatmapData(heatmapId: string) {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notion/data`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ heatmapId }),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    console.error('Failed to fetch heatmap data:', await response.text())
+    return []
+  }
+
+  const { data } = await response.json()
+  return data
+}
+
 export default async function EmbedPage({ params }: { params: { id: string } }) {
   const supabase = createServerComponentClient({ cookies })
   
@@ -65,16 +62,5 @@ export default async function EmbedPage({ params }: { params: { id: string } }) 
 
   const data = await getHeatmapData(config.id)
 
-  return (
-    <EmbedThemeProvider>
-      <div className="p-2 w-full h-full">
-        <HeatmapCard
-          config={config}
-          data={data}
-          isEmbed={true}
-          showControls={true}
-        />
-      </div>
-    </EmbedThemeProvider>
-  )
+  return <EmbedContent config={config} data={data} />
 } 
