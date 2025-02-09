@@ -3,6 +3,8 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { Icons } from "@/components/icons"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard" },
@@ -18,23 +20,23 @@ export function SiteHeader() {
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <span className="font-bold">Notion Heatmap</span>
+            <Icons.logo className="h-6 w-6" />
+            <span className="hidden font-bold sm:inline-block">
+              Notion Heatmap
+            </span>
           </Link>
         </div>
-        <nav className="flex items-center space-x-6 text-sm font-medium">
-          {navigation.map((item) => (
+        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          <nav className="flex items-center space-x-2">
+            <ThemeToggle />
             <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "transition-colors hover:text-foreground/80",
-                pathname === item.href ? "text-foreground" : "text-foreground/60"
-              )}
+              href="/auth"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 py-2 px-4"
             >
-              {item.name}
+              Login
             </Link>
-          ))}
-        </nav>
+          </nav>
+        </div>
       </div>
     </header>
   )

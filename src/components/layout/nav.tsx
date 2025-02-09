@@ -6,6 +6,7 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function MainNav() {
   const pathname = usePathname()
@@ -35,9 +36,12 @@ export function MainNav() {
         <Link href="/dashboard" className="font-bold">
           Notion Heatmap
         </Link>
-        <Button variant="ghost" onClick={handleSignOut}>
-          Sign Out
-        </Button>
+        <div className="flex items-center space-x-4">
+          <ThemeToggle />
+          <Button variant="ghost" onClick={handleSignOut}>
+            Sign Out
+          </Button>
+        </div>
       </div>
     </header>
   )

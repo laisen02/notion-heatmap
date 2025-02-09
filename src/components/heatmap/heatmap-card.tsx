@@ -50,7 +50,6 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
   const [showDeleteAlert, setShowDeleteAlert] = useState(false)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
   const [availableYears, setAvailableYears] = useState<string[]>([])
-  const [isDarkMode, setIsDarkMode] = useState(false)
 
   const stats = useMemo(() => {
     if (!data || data.length === 0) {
@@ -205,23 +204,22 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
     <Card className={cn(
       "overflow-hidden max-w-[1000px] mx-auto",
       isEmbed && "border-0 shadow-none bg-transparent",
-      isDarkMode && "dark border-gray-700"
+      "dark:border-gray-700"
     )}>
       <CardHeader className={cn(
         "flex flex-row items-center justify-between space-y-0 pb-2",
-        isEmbed ? "bg-transparent" : "dark:bg-gray-900/50",
-        isDarkMode && "border-b border-gray-700"
+        isEmbed ? "bg-transparent" : "dark:bg-gray-900/50"
       )}>
         <div className="space-y-1 min-w-0 flex-shrink">
           <CardTitle className={cn(
             "truncate",
-            isDarkMode && "text-gray-100"
+            "dark:text-gray-100"
           )}>
             {config.name}
           </CardTitle>
           <CardDescription className={cn(
             "truncate",
-            isDarkMode && "text-gray-400"
+            "dark:text-gray-400"
           )}>
             {config.description}
           </CardDescription>
@@ -233,7 +231,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
             onClick={refreshData}
             disabled={isLoading}
             className={cn(
-              isDarkMode ? "text-gray-300 hover:text-white hover:bg-gray-800" : "dark:text-gray-400"
+              "dark:text-gray-400"
             )}
           >
             <Icons.refresh className={cn("h-4 w-4", isLoading && "animate-spin")} />
@@ -242,19 +240,19 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
           <Select value={selectedYear} onValueChange={setSelectedYear}>
             <SelectTrigger className={cn(
               "w-[100px] sm:w-[140px]",
-              isDarkMode ? "bg-gray-800 text-gray-200" : "dark:bg-gray-800 dark:text-gray-200"
+              "dark:bg-gray-800 dark:text-gray-200"
             )}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent className={cn(
-              isDarkMode ? "bg-gray-800 border-gray-700" : "dark:bg-gray-800"
+              "dark:bg-gray-800"
             )}>
               {availableYears.map(year => (
                 <SelectItem 
                   key={year} 
                   value={year} 
                   className={cn(
-                    isDarkMode ? "text-gray-200 hover:bg-gray-700" : "dark:text-gray-200"
+                    "dark:text-gray-200 hover:bg-gray-700"
                   )}
                 >
                   {year}
@@ -262,18 +260,6 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
               ))}
             </SelectContent>
           </Select>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsDarkMode(!isDarkMode)}
-          >
-            {isDarkMode ? (
-              <Icons.sun className="h-4 w-4" />
-            ) : (
-              <Icons.moon className="h-4 w-4" />
-            )}
-          </Button>
 
           {!isEmbed && (
             <>
@@ -294,13 +280,13 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
                 <DropdownMenuContent 
                   align="end"
                   className={cn(
-                    isDarkMode && "bg-gray-800 border-gray-700"
+                    "dark:bg-gray-800 border-gray-700"
                   )}
                 >
                   <DropdownMenuItem 
                     asChild
                     className={cn(
-                      isDarkMode && "text-gray-200 hover:bg-gray-700"
+                      "dark:text-gray-200 hover:bg-gray-700"
                     )}
                   >
                     <Link 
@@ -313,22 +299,9 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
                   </DropdownMenuItem>
                   <div className="sm:hidden">
                     <DropdownMenuItem
-                      onClick={() => setIsDarkMode(!isDarkMode)}
-                      className={cn(
-                        isDarkMode && "text-gray-200 hover:bg-gray-700"
-                      )}
-                    >
-                      {isDarkMode ? (
-                        <Icons.sun className="mr-2 h-4 w-4" />
-                      ) : (
-                        <Icons.moon className="mr-2 h-4 w-4" />
-                      )}
-                      {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
                       onClick={handleCopyEmbed}
                       className={cn(
-                        isDarkMode && "text-gray-200 hover:bg-gray-700"
+                        "dark:text-gray-200 hover:bg-gray-700"
                       )}
                     >
                       <Icons.link className="mr-2 h-4 w-4" />
@@ -338,7 +311,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
                   <DropdownMenuItem
                     className={cn(
                       "text-destructive focus:text-destructive",
-                      isDarkMode && "hover:bg-gray-700"
+                      "dark:hover:bg-gray-700"
                     )}
                     onSelect={() => setShowDeleteAlert(true)}
                   >
@@ -353,10 +326,9 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
       </CardHeader>
       <CardContent className={cn(
         "overflow-x-auto pb-6",
-        isEmbed ? "bg-transparent pb-0" : "dark:bg-gray-900/50",
-        isDarkMode && "text-gray-300"
+        isEmbed ? "bg-transparent pb-0" : "dark:bg-gray-900/50"
       )}>
-        <div className={cn("min-w-[800px]", isDarkMode && "dark")}>
+        <div className={cn("min-w-[800px]", "dark")}>
           <HeatmapGrid
             data={filteredData}
             colorTheme={config.color_theme as ColorTheme}
@@ -368,12 +340,12 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
         {config.insights && (
           <div className={cn(
             "grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4",
-            isDarkMode && "text-gray-300"
+            "dark:text-gray-300"
           )}>
             <div className="space-y-1">
               <p className={cn(
                 "text-sm font-medium",
-                isDarkMode && "text-gray-400"
+                "dark:text-gray-400"
               )}>
                 Average Time
               </p>
@@ -385,7 +357,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
               <div>
                 <p className={cn(
                   "text-sm font-medium",
-                  isDarkMode && "text-gray-400"
+                  "dark:text-gray-400"
                 )}>
                   Total Days
                 </p>
@@ -396,7 +368,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
               <div>
                 <p className={cn(
                   "text-sm font-medium",
-                  isDarkMode && "text-gray-400"
+                  "dark:text-gray-400"
                 )}>
                   Total Time
                 </p>
@@ -407,7 +379,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
               <div>
                 <p className={cn(
                   "text-sm font-medium",
-                  isDarkMode && "text-gray-400"
+                  "dark:text-gray-400"
                 )}>
                   Std Dev
                 </p>
