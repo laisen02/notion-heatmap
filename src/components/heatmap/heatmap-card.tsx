@@ -179,6 +179,22 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
     }
   }
 
+  const handleCopyEmbed = async () => {
+    try {
+      // Generate the embed URL using window.location.origin
+      const embedUrl = `${window.location.origin}/embed/${config.id}`
+      
+      // Use the clipboard API to copy the URL
+      await navigator.clipboard.writeText(embedUrl)
+      
+      // Show success toast
+      toast.success("Embed link copied to clipboard")
+    } catch (error) {
+      console.error('Failed to copy embed link:', error)
+      toast.error("Failed to copy embed link")
+    }
+  }
+
   return (
     <Card className="overflow-hidden max-w-[1000px] mx-auto">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 dark:bg-gray-900">
@@ -227,10 +243,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => {
-                  navigator.clipboard.writeText(embedUrl)
-                  toast.success('Embed link copied to clipboard')
-                }}
+                onClick={handleCopyEmbed}
               >
                 <Icons.link className="h-4 w-4" />
               </Button>
@@ -264,10 +277,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
                     {isDarkMode ? 'Light Mode' : 'Dark Mode'}
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => {
-                      navigator.clipboard.writeText(embedUrl)
-                      toast.success('Embed link copied to clipboard')
-                    }}
+                    onClick={handleCopyEmbed}
                   >
                     <Icons.link className="mr-2 h-4 w-4" />
                     Copy Embed Link

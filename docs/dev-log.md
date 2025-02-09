@@ -1,5 +1,64 @@
 # Development Log
 
+## 2025-02-28 (14:30)
+
+### Improvements
+1. Optimized heatmap data loading:
+   - Added server-side initial data fetching for faster initial display
+   - Implemented background data refresh after mount
+   - Improved user experience by showing data immediately on login
+
+2. Fixed heatmap layout:
+   - Changed to single column layout (one heatmap per row)
+   - Improved spacing between heatmaps
+   - Fixed container width and overflow issues
+
+3. Fixed embed link functionality:
+   - Added proper embed URL generation
+   - Fixed clipboard copy functionality
+   - Added success toast notifications
+
+4. Added data caching with new heatmap_data table:
+   - Created table to store cached heatmap data
+   - Added RLS policies for security
+   - Implemented automatic cache updates on refresh
+
+### Bug Fixes
+1. Fixed navigation bar issues:
+   - Restored missing navigation items
+   - Fixed conditional rendering based on auth state
+   - Added proper layout structure with SiteHeader
+
+2. Fixed icon display issues:
+   - Restored all control icons (refresh, dark mode, settings, etc.)
+   - Fixed dropdown menu functionality
+   - Added proper icon spacing and alignment
+
+3. Fixed data loading issues:
+   - Implemented proper data initialization
+   - Added loading states
+   - Improved error handling
+
+### Technical Debt & Linting
+1. Fixed ESLint errors:
+   - Resolved unescaped entities in components
+   - Fixed unused variable warnings
+   - Addressed missing dependency warnings
+   - Fixed type-related issues
+
+### Next Steps
+1. Consider implementing:
+   - Batch data fetching optimization
+   - Progressive loading for multiple heatmaps
+   - Better error recovery mechanisms
+   - Offline support
+
+2. Potential improvements:
+   - Add data export functionality
+   - Implement better dark mode persistence
+   - Add more customization options
+   - Improve mobile responsiveness
+
 ## 2025-02-05
 
 ### Project Initialization and Setup
@@ -303,3 +362,68 @@ Note: All activity types work with any Notion property type (title, rich_text, s
 
 ---
 Note: This log will be updated as development progresses. Each update will include a timestamp and description of changes made. 
+
+## 2025-02-08
+
+### 14:15 - Layout and Navigation Improvements
+1. Fixed heatmap layout:
+   - Changed to single column layout (one heatmap per row)
+   - Fixed container width and overflow issues
+   - Added proper spacing between heatmaps
+
+### 14:30 - Navigation Bar Fixes
+1. Fixed navigation issues:
+   - Added SiteHeader component
+   - Fixed conditional rendering based on auth state
+   - Restored missing navigation items in header
+   - Added proper layout structure with MainNav and SiteHeader
+
+### 14:45 - Data Loading Optimizations
+1. Improved initial data loading:
+   - Added server-side data fetching in dashboard page
+   - Implemented automatic data loading on mount
+   - Added loading states and indicators
+   - Fixed data refresh mechanism
+
+### 15:00 - Embed Link Functionality
+1. Fixed embed link issues:
+   - Added proper embedUrl generation using window.location.origin
+   - Fixed clipboard copy functionality
+   - Added success toast notifications
+   - Fixed embed link copying in dropdown menu
+
+### 15:15 - UI Controls and Icons
+1. Restored control functionality:
+   - Fixed year selector dropdown
+   - Added dark mode toggle
+   - Restored settings dropdown menu
+   - Fixed icon spacing and alignment
+
+### Error Handling Improvements
+1. Enhanced error handling:
+   - Added proper error boundaries
+   - Improved error messages and UI
+   - Added retry mechanisms for failed data fetches
+   - Added clear cache functionality for troubleshooting
+
+2. Added error components:
+   - Implemented ErrorMessage component
+   - Added GlobalError handler
+   - Added page-level error handling
+   - Improved error recovery UX
+
+### Known Issues to Address
+1. Performance:
+   - Initial data load still needs optimization
+   - Consider implementing data caching
+   - Look into reducing API calls
+
+2. UI/UX:
+   - Dark mode persistence needs work
+   - Mobile responsiveness needs improvement
+   - Loading states could be more intuitive
+
+[Previous logs...]
+
+
+
