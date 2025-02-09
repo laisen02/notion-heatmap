@@ -213,11 +213,17 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
     )}>
       <Card className={cn(
         "overflow-hidden max-w-[1000px] mx-auto bg-background",
-        isEmbed && "border-0 shadow-none",
-        isDarkMode && "border-gray-700"
+        isEmbed && "shadow-sm",
+        isDarkMode 
+          ? "border-gray-700" 
+          : "border-gray-200",
+        "rounded-lg border"
       )}>
         <CardHeader className={cn(
-          "flex flex-row items-center justify-between space-y-0 pb-2 bg-background"
+          "flex flex-row items-center justify-between space-y-0 pb-2 bg-background",
+          isDarkMode 
+            ? "border-b border-gray-700"
+            : "border-b border-gray-200"
         )}>
           <div className="space-y-1 min-w-0 flex-shrink">
             <CardTitle className={cn(
