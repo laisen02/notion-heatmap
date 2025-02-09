@@ -5,6 +5,7 @@ import { Toaster } from 'sonner'
 import { headers, cookies } from 'next/headers'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { SiteHeader } from "@/components/site-header"
+import { cn } from "@/lib/utils"
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,6 +21,10 @@ export default async function RootLayout({
 }) {
   const cookieStore = cookies()
   const supabase = createServerComponentClient({ cookies: () => cookieStore })
+  const pathname = headers().get("x-pathname") || ""
+
+  // Don't show header in embed view
+  const isEmbedPage = pathname.startsWith("/embed")
 
   try {
     const {
@@ -30,15 +35,21 @@ export default async function RootLayout({
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className}>
           <div className="relative flex min-h-screen flex-col">
-            {session ? (
+            {!isEmbedPage && (
               <>
-                <SiteHeader />
-                <MainNav />
+                {session ? (
+                  <>
+                    <SiteHeader />
+                    <MainNav />
+                  </>
+                ) : (
+                  <SiteHeader />
+                )}
               </>
-            ) : (
-              <SiteHeader />
             )}
-            <main className="flex-1">{children}</main>
+            <main className={cn("flex-1", isEmbedPage && "min-h-0")}>
+              {children}
+            </main>
           </div>
           <Toaster />
         </body>

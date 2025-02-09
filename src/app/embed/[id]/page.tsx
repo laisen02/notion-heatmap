@@ -21,6 +21,16 @@ async function getHeatmapData(heatmapId: string) {
   return data
 }
 
+export const metadata = {
+  title: 'Notion Heatmap',
+  description: 'Heatmap visualization',
+  viewport: 'width=device-width, initial-scale=1',
+  referrer: 'no-referrer',
+  // Add these headers for Notion embedding
+  'x-frame-options': 'ALLOW-FROM https://*.notion.so',
+  'content-security-policy': "frame-ancestors 'self' https://*.notion.so https://notion.so;",
+}
+
 export default async function EmbedPage({ params }: { params: { id: string } }) {
   const supabase = createServerComponentClient({ cookies })
   
@@ -37,7 +47,7 @@ export default async function EmbedPage({ params }: { params: { id: string } }) 
   const data = await getHeatmapData(config.id)
 
   return (
-    <div className="p-2 bg-transparent">
+    <div className="p-2 bg-transparent w-full h-full">
       <HeatmapCard
         config={config}
         data={data}

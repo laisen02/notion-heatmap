@@ -181,16 +181,17 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
 
   const handleCopyEmbed = async () => {
     try {
-      // Generate the embed URL using window.location.origin
       const embedUrl = `${window.location.origin}/embed/${config.id}`
-      
-      // Use the clipboard API to copy the URL
       await navigator.clipboard.writeText(embedUrl)
       
-      // Show success toast with longer duration
-      toast.success("Embed link copied to clipboard!", {
-        duration: 2000,
-        position: "bottom-right"
+      // Make toast more visible and last longer
+      toast.success("Embed link copied!", {
+        duration: 3000,
+        position: "top-center",
+        style: {
+          backgroundColor: "#4CAF50",
+          color: "white",
+        },
       })
     } catch (error) {
       console.error('Failed to copy embed link:', error)

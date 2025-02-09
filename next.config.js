@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-module.exports = {
+const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -14,7 +14,7 @@ module.exports = {
       allowedOrigins: ['localhost:3000', 'notionheatmap.com']
     }
   },
-  headers: async () => {
+  async headers() {
     return [
       {
         // Apply these headers to all routes
@@ -34,6 +34,21 @@ module.exports = {
           },
         ],
       },
+      {
+        source: '/embed/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOW-FROM https://*.notion.so'
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'self' https://*.notion.so https://notion.so;"
+          }
+        ],
+      }
     ]
   },
-} 
+}
+
+export default nextConfig 
