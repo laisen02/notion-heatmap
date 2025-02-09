@@ -28,7 +28,7 @@ export const metadata = {
   viewport: 'width=device-width, initial-scale=1',
   referrer: 'no-referrer',
   // Headers for Notion embedding
-  'x-frame-options': 'ALLOW-FROM https://*.notion.so',
+  'x-frame-options': 'ALLOW-FROM https://*.notion.so https://notion.so',
   'content-security-policy': "frame-ancestors 'self' https://*.notion.so https://notion.so;",
   // OpenGraph meta tags for better embedding
   openGraph: {

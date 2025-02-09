@@ -21,14 +21,6 @@ module.exports = {
         source: '/:path*',
         headers: [
           {
-            key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://*.notion.com https://notion.so;",
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'ALLOW-FROM https://*.notion.com',
-          },
-          {
             key: 'Access-Control-Allow-Origin',
             value: '*',
           },
@@ -39,12 +31,16 @@ module.exports = {
         headers: [
           {
             key: 'X-Frame-Options',
-            value: 'ALLOW-FROM https://*.notion.so'
+            value: 'ALLOW-FROM https://*.notion.so https://notion.so',
           },
           {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://*.notion.so https://notion.so;"
-          }
+            value: "frame-ancestors 'self' https://*.notion.so https://notion.so;",
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
         ],
       }
     ]

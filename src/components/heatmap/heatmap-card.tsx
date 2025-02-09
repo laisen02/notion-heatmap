@@ -184,13 +184,13 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
       const embedUrl = `${window.location.origin}/embed/${config.id}`
       await navigator.clipboard.writeText(embedUrl)
       
-      // Make toast more visible and last longer
       toast.success("Embed link copied!", {
         duration: 3000,
         position: "top-center",
         style: {
-          backgroundColor: "#4CAF50",
-          color: "white",
+          backgroundColor: "var(--background)",
+          color: "var(--foreground)",
+          border: "1px solid var(--border)",
         },
       })
     } catch (error) {
