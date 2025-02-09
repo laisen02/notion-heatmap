@@ -17,23 +17,6 @@ module.exports = {
   async headers() {
     return [
       {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Access-Control-Allow-Origin',
-            value: '*'
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: "default-src 'self'; frame-ancestors 'self' https://*.notion.so https://notion.so https://www.notion.so; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
-          }
-        ],
-      },
-      {
         source: '/embed/:id',
         headers: [
           {
@@ -55,19 +38,6 @@ module.exports = {
           {
             key: 'Access-Control-Allow-Headers',
             value: '*'
-          }
-        ],
-      },
-      {
-        source: '/:id/embed',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://*.notion.so https://notion.so https://www.notion.so;"
           }
         ],
       },

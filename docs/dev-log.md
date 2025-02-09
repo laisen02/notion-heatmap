@@ -1,63 +1,6 @@
 # Development Log
 
-## 2025-02-28 (14:30)
 
-### Improvements
-1. Optimized heatmap data loading:
-   - Added server-side initial data fetching for faster initial display
-   - Implemented background data refresh after mount
-   - Improved user experience by showing data immediately on login
-
-2. Fixed heatmap layout:
-   - Changed to single column layout (one heatmap per row)
-   - Improved spacing between heatmaps
-   - Fixed container width and overflow issues
-
-3. Fixed embed link functionality:
-   - Added proper embed URL generation
-   - Fixed clipboard copy functionality
-   - Added success toast notifications
-
-4. Added data caching with new heatmap_data table:
-   - Created table to store cached heatmap data
-   - Added RLS policies for security
-   - Implemented automatic cache updates on refresh
-
-### Bug Fixes
-1. Fixed navigation bar issues:
-   - Restored missing navigation items
-   - Fixed conditional rendering based on auth state
-   - Added proper layout structure with SiteHeader
-
-2. Fixed icon display issues:
-   - Restored all control icons (refresh, dark mode, settings, etc.)
-   - Fixed dropdown menu functionality
-   - Added proper icon spacing and alignment
-
-3. Fixed data loading issues:
-   - Implemented proper data initialization
-   - Added loading states
-   - Improved error handling
-
-### Technical Debt & Linting
-1. Fixed ESLint errors:
-   - Resolved unescaped entities in components
-   - Fixed unused variable warnings
-   - Addressed missing dependency warnings
-   - Fixed type-related issues
-
-### Next Steps
-1. Consider implementing:
-   - Batch data fetching optimization
-   - Progressive loading for multiple heatmaps
-   - Better error recovery mechanisms
-   - Offline support
-
-2. Potential improvements:
-   - Add data export functionality
-   - Implement better dark mode persistence
-   - Add more customization options
-   - Improve mobile responsiveness
 
 ## 2025-02-05
 
@@ -423,7 +366,76 @@ Note: This log will be updated as development progresses. Each update will inclu
    - Mobile responsiveness needs improvement
    - Loading states could be more intuitive
 
-[Previous logs...]
+## 2025-02-08 (14:30)
+
+### Improvements
+1. Optimized heatmap data loading:
+   - Added server-side initial data fetching for faster initial display
+   - Implemented background data refresh after mount
+   - Improved user experience by showing data immediately on login
+
+2. Fixed heatmap layout:
+   - Changed to single column layout (one heatmap per row)
+   - Improved spacing between heatmaps
+   - Fixed container width and overflow issues
+
+3. Fixed embed link functionality:
+   - Added proper embed URL generation
+   - Fixed clipboard copy functionality
+   - Added success toast notifications
+
+4. Added data caching with new heatmap_data table:
+   - Created table to store cached heatmap data
+   - Added RLS policies for security
+   - Implemented automatic cache updates on refresh
+
+### Bug Fixes
+1. Fixed navigation bar issues:
+   - Restored missing navigation items
+   - Fixed conditional rendering based on auth state
+   - Added proper layout structure with SiteHeader
+
+2. Fixed icon display issues:
+   - Restored all control icons (refresh, dark mode, settings, etc.)
+   - Fixed dropdown menu functionality
+   - Added proper icon spacing and alignment
+
+3. Fixed data loading issues:
+   - Implemented proper data initialization
+   - Added loading states
+   - Improved error handling
+
+### Technical Debt & Linting
+1. Fixed ESLint errors:
+   - Resolved unescaped entities in components
+   - Fixed unused variable warnings
+   - Addressed missing dependency warnings
+   - Fixed type-related issues
+
+### Next Steps
+1. Consider implementing:
+   - Batch data fetching optimization
+   - Progressive loading for multiple heatmaps
+   - Better error recovery mechanisms
+   - Offline support
+
+2. Potential improvements:
+   - Add data export functionality
+   - Implement better dark mode persistence
+   - Add more customization options
+   - Improve mobile responsiveness
+
+# task list
+there is sometime duplicate nav bar appear on dashboard. make sure the nav bar follow @ condition written here.  
+I just notice the reset password button on sign up login page disapapear, i dont see any reset password button
+sign up using esixting account still didnt show notification to user about the email is already been register and let them to sign in 
+update and complete the edit heatmap button function, whenever user click the edit heatmap, it should land on a page that look almost the same with the create new heatmap page, the only different is those input column will be filled with the selected heatmap info that stored in supabase to show here, for user to edit and update them. after edit and click the update button, those info should be update to supabase database and the heatmap info will be changes and update to the newest info set by user. 
+
+I noticed when I test in firefox browser, those notification is showing correctly whenever anythings happen like refresh successful and others. but using microsoft edge browser testing, it didnt show any notification whenever i carry on any of the same testing, no login success show, no refresh success show and so.
+show loading or creating or logging in whenever it take some time to navigate to another page. I noticed most of the time those success notification pop out too fast, but page still havet navigate. example after log in success, I already see log in success but nothing happen, i confuse what is going on, and only wait sometime then only it take me to the dashboard. whenever you want to show success notification, make sure it done the step and no waiting for user. you can show success at the same time when You navagate to the next page, then no confussion, just show loading or processing before, in the wait time. same with create new heatmap. the successful create new heatmap show only be show at the time when successful navigate user back to dashboard, just show creating heatmap or anythings when you need some time to process and navigate.
 
 
+I want to create a browser tab management browser extension
 
+It store all user tab url info in their computer in free plan mode.
+If they want sync feature, they will have to go with paid plan, and only then we store their info on supabase 
