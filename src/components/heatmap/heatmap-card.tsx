@@ -228,9 +228,6 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
       )}>
         <CardHeader className={cn(
           "flex flex-row items-center justify-between space-y-0 pb-2 bg-background",
-          isDarkMode 
-            ? "border-b border-gray-700"
-            : "border-b border-gray-200"
         )}>
           <div className="space-y-1 min-w-0 flex-shrink">
             <CardTitle className={cn(
@@ -370,25 +367,23 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
           </div>
         </CardHeader>
         <CardContent className={cn(
-          "overflow-x-auto bg-background",
-          isEmbed ? "pb-4" : "pb-8",
-          "relative"
+          "bg-background relative",
+          isEmbed ? "pb-2" : "pb-4"
         )}>
-          <div className="pb-4 overflow-x-auto">
-            <div className={cn("min-w-[800px]")}>
-              <HeatmapGrid
-                data={filteredData}
-                colorTheme={config.color_theme as ColorTheme}
-                weekStart={config.week_start}
-                className="mb-4"
-                isDarkMode={isDarkMode}
-              />
-            </div>
+          {/* Fixed content first (no scroll) */}
+          <div className="mb-4">
+            <HeatmapGrid
+              data={filteredData}
+              colorTheme={config.color_theme as ColorTheme}
+              weekStart={config.week_start}
+              isDarkMode={isDarkMode}
+            />
           </div>
+
+          {/* Insights before scroll area */}
           {config.insights && (
             <div className={cn(
-              "grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4",
-              "min-w-0",
+              "grid grid-cols-2 sm:grid-cols-4 gap-4 mb-3",
               isDarkMode ? "text-gray-300" : "text-gray-900"
             )}>
               <div className="space-y-1">
@@ -437,6 +432,16 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
               )}
             </div>
           )}
+
+          {/* Scrollable container at the bottom */}
+          <div className="overflow-x-auto">
+            <div className={cn(
+              "min-w-[800px]",
+              "pt-2"
+            )}>
+              {/* Empty div for scroll space */}
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
