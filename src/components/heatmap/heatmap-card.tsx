@@ -39,9 +39,10 @@ interface HeatmapCardProps {
   config: HeatmapConfig
   data: HeatmapData[]
   isEmbed?: boolean
+  showControls?: boolean
 }
 
-export function HeatmapCard({ config, data: initialData, isEmbed = false }: HeatmapCardProps) {
+export function HeatmapCard({ config, data: initialData, isEmbed = false, showControls = true }: HeatmapCardProps) {
   const router = useRouter()
   const supabase = createClientComponentClient()
   const [isLoading, setIsLoading] = useState(false)
@@ -200,7 +201,10 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
   }
 
   return (
-    <Card className="overflow-hidden max-w-[1000px] mx-auto">
+    <Card className={cn(
+      "overflow-hidden max-w-[1000px] mx-auto",
+      isEmbed && "border-0 shadow-none"
+    )}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 dark:bg-gray-900">
         <div className="space-y-1 min-w-0 flex-shrink">
           <CardTitle className="truncate">{config.name}</CardTitle>
@@ -299,7 +303,10 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
           )}
         </div>
       </CardHeader>
-      <CardContent className="overflow-x-auto pb-6 dark:bg-gray-900">
+      <CardContent className={cn(
+        "overflow-x-auto pb-6 dark:bg-gray-900",
+        isEmbed && "pb-0"
+      )}>
         <div className={cn("min-w-[800px]", isDarkMode && "dark")}>
           <HeatmapGrid
             data={filteredData}

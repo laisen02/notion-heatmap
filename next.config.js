@@ -31,16 +31,16 @@ module.exports = {
         headers: [
           {
             key: 'X-Frame-Options',
-            value: 'ALLOW-FROM https://*.notion.so https://notion.so',
+            value: 'SAMEORIGIN'
           },
           {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://*.notion.so https://notion.so;",
+            value: "frame-ancestors 'self' https://*.notion.so https://notion.so https://www.notion.so;"
           },
           {
             key: 'Access-Control-Allow-Origin',
-            value: '*',
-          },
+            value: '*'
+          }
         ],
       }
     ]
