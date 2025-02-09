@@ -10,6 +10,7 @@ interface HeatmapGridProps {
   colorTheme?: ColorTheme
   weekStart?: 'monday' | 'sunday'
   className?: string
+  isDarkMode: boolean
 }
 
 const colorClasses: Record<ColorTheme, string[]> = {
@@ -114,9 +115,10 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 export function HeatmapGrid({
   data,
-  colorTheme = 'orange',
+  colorTheme = 'github',
   weekStart = 'monday',
-  className
+  className,
+  isDarkMode
 }: HeatmapGridProps) {
   // Find min and max values for scaling
   const { minValue, maxValue } = useMemo(() => {
@@ -232,7 +234,11 @@ export function HeatmapGrid({
   }, [dates, weeks.length])
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={cn(
+      "grid gap-px",
+      className,
+      isDarkMode ? "dark" : "light"
+    )}>
       {/* Month labels */}
       <div className="flex pl-8">
         {monthLabels.map(({ month, offset }, i) => (
@@ -258,7 +264,7 @@ export function HeatmapGrid({
         </div>
 
         {/* Heatmap grid */}
-        <div className={cn("flex gap-1", className)}>
+        <div className={cn("flex gap-1")}>
           {weeks.map((week, weekIndex) => (
             <div key={weekIndex} className="grid grid-rows-7 gap-1">
               {week.map((day, dayIndex) => {
