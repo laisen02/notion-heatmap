@@ -6,6 +6,19 @@ export async function middleware(request: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req: request, res })
 
+  // Add pathname to headers for layout to check
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-pathname', request.nextUrl.pathname)
+
+  // Allow embed URLs without authentication
+  if (request.nextUrl.pathname.startsWith('/embed/')) {
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
+  }
+
   try {
     // Refresh session if expired - required for Server Components
     await supabase.auth.getSession()
@@ -41,11 +54,12 @@ function isProtectedRoute(pathname: string): boolean {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all request paths except:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder
+     * - public files with extensions
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
