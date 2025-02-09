@@ -5,7 +5,7 @@ export default function EmbedLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-transparent">
+      <body className="bg-transparent min-h-0">
         {children}
       </body>
     </html>

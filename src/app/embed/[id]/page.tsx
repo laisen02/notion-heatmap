@@ -37,11 +37,12 @@ export default async function EmbedPage({ params }: { params: { id: string } }) 
   const data = await getHeatmapData(config.id)
 
   return (
-    <div className="p-2">
+    <div className="p-2 bg-transparent">
       <HeatmapCard
         config={config}
         data={data}
-        isEmbed
+        isEmbed={true}
+        showControls={true}
       />
     </div>
   )
@@ -54,4 +55,10 @@ export const metadata = {
     width: 'device-width',
     initialScale: 1,
   },
+  // Add OpenGraph meta tags for better embedding
+  openGraph: {
+    type: 'website',
+    title: 'Notion Heatmap',
+    description: 'Heatmap visualization',
+  }
 } 

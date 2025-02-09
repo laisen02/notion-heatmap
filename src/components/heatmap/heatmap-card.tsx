@@ -187,8 +187,11 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
       // Use the clipboard API to copy the URL
       await navigator.clipboard.writeText(embedUrl)
       
-      // Show success toast
-      toast.success("Embed link copied to clipboard")
+      // Show success toast with longer duration
+      toast.success("Embed link copied to clipboard!", {
+        duration: 2000,
+        position: "bottom-right"
+      })
     } catch (error) {
       console.error('Failed to copy embed link:', error)
       toast.error("Failed to copy embed link")
@@ -202,44 +205,44 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
           <CardTitle className="truncate">{config.name}</CardTitle>
           <CardDescription className="truncate">{config.description}</CardDescription>
         </div>
-        {!isEmbed && (
-          <div className="flex items-center space-x-2 flex-shrink-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={refreshData}
-              disabled={isLoading}
-              className="dark:text-gray-400"
-            >
-              <Icons.refresh className={cn("h-4 w-4", isLoading && "animate-spin")} />
-            </Button>
+        <div className="flex items-center space-x-2 flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={refreshData}
+            disabled={isLoading}
+            className="dark:text-gray-400"
+          >
+            <Icons.refresh className={cn("h-4 w-4", isLoading && "animate-spin")} />
+          </Button>
 
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-[100px] sm:w-[140px] dark:bg-gray-800 dark:text-gray-200">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="dark:bg-gray-800">
-                {availableYears.map(year => (
-                  <SelectItem key={year} value={year} className="dark:text-gray-200">
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-[100px] sm:w-[140px] dark:bg-gray-800 dark:text-gray-200">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="dark:bg-gray-800">
+              {availableYears.map(year => (
+                <SelectItem key={year} value={year} className="dark:text-gray-200">
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-            <div className="hidden sm:flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsDarkMode(!isDarkMode)}
-              >
-                {isDarkMode ? (
-                  <Icons.sun className="h-4 w-4" />
-                ) : (
-                  <Icons.moon className="h-4 w-4" />
-                )}
-              </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsDarkMode(!isDarkMode)}
+          >
+            {isDarkMode ? (
+              <Icons.sun className="h-4 w-4" />
+            ) : (
+              <Icons.moon className="h-4 w-4" />
+            )}
+          </Button>
 
+          {!isEmbed && (
+            <>
               <Button
                 variant="ghost"
                 size="icon"
@@ -247,53 +250,53 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false }: Heat
               >
                 <Icons.link className="h-4 w-4" />
               </Button>
-            </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Icons.settings className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link 
-                    href={`/edit/${config.id}`}
-                    className="flex items-center"
-                  >
-                    <Icons.edit className="mr-2 h-4 w-4" />
-                    Edit
-                  </Link>
-                </DropdownMenuItem>
-                <div className="sm:hidden">
-                  <DropdownMenuItem
-                    onClick={() => setIsDarkMode(!isDarkMode)}
-                  >
-                    {isDarkMode ? (
-                      <Icons.sun className="mr-2 h-4 w-4" />
-                    ) : (
-                      <Icons.moon className="mr-2 h-4 w-4" />
-                    )}
-                    {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Icons.settings className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link 
+                      href={`/edit/${config.id}`}
+                      className="flex items-center"
+                    >
+                      <Icons.edit className="mr-2 h-4 w-4" />
+                      Edit
+                    </Link>
                   </DropdownMenuItem>
+                  <div className="sm:hidden">
+                    <DropdownMenuItem
+                      onClick={() => setIsDarkMode(!isDarkMode)}
+                    >
+                      {isDarkMode ? (
+                        <Icons.sun className="mr-2 h-4 w-4" />
+                      ) : (
+                        <Icons.moon className="mr-2 h-4 w-4" />
+                      )}
+                      {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={handleCopyEmbed}
+                    >
+                      <Icons.link className="mr-2 h-4 w-4" />
+                      Copy Embed Link
+                    </DropdownMenuItem>
+                  </div>
                   <DropdownMenuItem
-                    onClick={handleCopyEmbed}
+                    className="text-destructive focus:text-destructive"
+                    onSelect={() => setShowDeleteAlert(true)}
                   >
-                    <Icons.link className="mr-2 h-4 w-4" />
-                    Copy Embed Link
+                    <Icons.trash className="mr-2 h-4 w-4" />
+                    Delete
                   </DropdownMenuItem>
-                </div>
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onSelect={() => setShowDeleteAlert(true)}
-                >
-                  <Icons.trash className="mr-2 h-4 w-4" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="overflow-x-auto pb-6 dark:bg-gray-900">
         <div className={cn("min-w-[800px]", isDarkMode && "dark")}>
