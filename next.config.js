@@ -40,7 +40,7 @@ module.exports = {
         ],
       },
       {
-        source: '/embed/:id/embed',
+        source: '/:id/embed',
         headers: [
           {
             key: 'X-Frame-Options',

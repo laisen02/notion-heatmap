@@ -10,8 +10,8 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-pathname', request.nextUrl.pathname)
 
-  // Allow both embed URL patterns without authentication
-  if (request.nextUrl.pathname.startsWith('/embed/')) {
+  // Allow embed URLs without authentication
+  if (request.nextUrl.pathname.endsWith('/embed')) {
     return NextResponse.next({
       request: {
         headers: requestHeaders,
