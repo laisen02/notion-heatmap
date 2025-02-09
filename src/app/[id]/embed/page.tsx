@@ -31,8 +31,9 @@ export const metadata = {
   description: 'Heatmap visualization',
   viewport: 'width=device-width, initial-scale=1',
   referrer: 'no-referrer',
-  'x-frame-options': 'SAMEORIGIN',
-  'content-security-policy': "frame-ancestors 'self' https://*.notion.so https://notion.so https://www.notion.so;",
+  other: {
+    'notion:renderer': 'iframe',
+  },
 }
 
 export default async function EmbedPage({ params }: { params: { id: string } }) {

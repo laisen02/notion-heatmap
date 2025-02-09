@@ -1,4 +1,5 @@
 import { Toaster } from "sonner"
+import '../../../styles/globals.css'
 
 export default function EmbedLayout({
   children,
@@ -10,9 +11,15 @@ export default function EmbedLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="referrer" content="no-referrer" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Notion Heatmap" />
+        <meta property="og:description" content="Heatmap visualization" />
+        <meta name="notion:renderer" content="iframe" />
       </head>
       <body className="bg-transparent min-h-0">
-        {children}
+        <div className="notion-embed">
+          {children}
+        </div>
         <Toaster
           position="top-center"
           toastOptions={{
