@@ -27,7 +27,7 @@ module.exports = {
         ],
       },
       {
-        source: '/embed/:path*',
+        source: '/embed/:id',
         headers: [
           {
             key: 'X-Frame-Options',
@@ -36,10 +36,19 @@ module.exports = {
           {
             key: 'Content-Security-Policy',
             value: "frame-ancestors 'self' https://*.notion.so https://notion.so https://www.notion.so;"
+          }
+        ],
+      },
+      {
+        source: '/embed/:id/embed',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN'
           },
           {
-            key: 'Access-Control-Allow-Origin',
-            value: '*'
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'self' https://*.notion.so https://notion.so https://www.notion.so;"
           }
         ],
       }
