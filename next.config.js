@@ -38,11 +38,15 @@ module.exports = {
         headers: [
           {
             key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
+            value: 'ALLOW-FROM https://*.notion.so'
           },
           {
             key: 'Content-Security-Policy',
             value: "frame-ancestors 'self' https://*.notion.so https://notion.so https://www.notion.so;"
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*'
           }
         ],
       },

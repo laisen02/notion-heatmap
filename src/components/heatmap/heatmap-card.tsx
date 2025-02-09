@@ -182,8 +182,8 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
 
   const handleCopyEmbed = async () => {
     try {
-      // Use a simpler URL format
-      const embedUrl = `${window.location.origin}/${config.id}`
+      // Use the /embed/{id} format
+      const embedUrl = `${window.location.origin}/embed/${config.id}`
       await navigator.clipboard.writeText(embedUrl)
       
       toast.success("Embed link copied! In Notion, create an embed block and paste this link", {
