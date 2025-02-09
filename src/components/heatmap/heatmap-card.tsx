@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { HeatmapGrid } from "./heatmap-grid"
-import { HeatmapConfig, HeatmapData } from "@/types/heatmap"
+import { ColorTheme, HeatmapConfig, HeatmapData } from "@/types/heatmap"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
@@ -41,9 +41,10 @@ interface HeatmapCardProps {
   data: HeatmapData[]
   isEmbed?: boolean
   showControls?: boolean
+  onThemeChange?: (isDark: boolean) => void
 }
 
-export function HeatmapCard({ config, data: initialData, isEmbed = false, showControls = true }: HeatmapCardProps) {
+export function HeatmapCard({ config, data: initialData, isEmbed = false, showControls = true, onThemeChange }: HeatmapCardProps) {
   const router = useRouter()
   const supabase = createClientComponentClient()
   const [isLoading, setIsLoading] = useState(false)
@@ -206,6 +207,12 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
     }
   }
 
+  const handleThemeToggle = () => {
+    const newTheme = !isDarkMode
+    setIsDarkMode(newTheme)
+    onThemeChange?.(newTheme)
+  }
+
   return (
     <div className={cn(
       "relative isolate",
@@ -283,7 +290,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setIsDarkMode(!isDarkMode)}
+              onClick={handleThemeToggle}
               className={cn(
                 isDarkMode && "text-gray-300 hover:text-white hover:bg-gray-800"
               )}
@@ -363,22 +370,25 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
           </div>
         </CardHeader>
         <CardContent className={cn(
-          "overflow-x-auto pb-6 bg-background",
-          isEmbed && "pb-0"
+          "overflow-x-auto bg-background",
+          isEmbed ? "pb-4" : "pb-8",
+          "relative"
         )}>
-          <div className={cn("min-w-[800px]", "dark")}>
-            <HeatmapGrid
-              data={filteredData}
-              colorTheme={config.color_theme as ColorTheme}
-              weekStart={config.week_start}
-              className="mb-4"
-              isDarkMode={isDarkMode}
-            />
+          <div className="pb-4 overflow-x-auto">
+            <div className={cn("min-w-[800px]")}>
+              <HeatmapGrid
+                data={filteredData}
+                colorTheme={config.color_theme as ColorTheme}
+                weekStart={config.week_start}
+                className="mb-4"
+                isDarkMode={isDarkMode}
+              />
+            </div>
           </div>
-          {/* Stats section */}
           {config.insights && (
             <div className={cn(
               "grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4",
+              "min-w-0",
               isDarkMode ? "text-gray-300" : "text-gray-900"
             )}>
               <div className="space-y-1">
