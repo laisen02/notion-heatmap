@@ -21,14 +21,21 @@ async function getHeatmapData(heatmapId: string) {
   return data
 }
 
+// Combine both metadata declarations into one
 export const metadata = {
   title: 'Notion Heatmap',
   description: 'Heatmap visualization',
   viewport: 'width=device-width, initial-scale=1',
   referrer: 'no-referrer',
-  // Add these headers for Notion embedding
+  // Headers for Notion embedding
   'x-frame-options': 'ALLOW-FROM https://*.notion.so',
   'content-security-policy': "frame-ancestors 'self' https://*.notion.so https://notion.so;",
+  // OpenGraph meta tags for better embedding
+  openGraph: {
+    type: 'website',
+    title: 'Notion Heatmap',
+    description: 'Heatmap visualization',
+  }
 }
 
 export default async function EmbedPage({ params }: { params: { id: string } }) {
@@ -56,19 +63,4 @@ export default async function EmbedPage({ params }: { params: { id: string } }) 
       />
     </div>
   )
-}
-
-// Add metadata to help with caching and security
-export const metadata = {
-  referrer: 'no-referrer',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-  },
-  // Add OpenGraph meta tags for better embedding
-  openGraph: {
-    type: 'website',
-    title: 'Notion Heatmap',
-    description: 'Heatmap visualization',
-  }
 } 
