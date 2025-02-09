@@ -204,15 +204,27 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
   return (
     <Card className={cn(
       "overflow-hidden max-w-[1000px] mx-auto",
-      isEmbed && "border-0 shadow-none bg-transparent"
+      isEmbed && "border-0 shadow-none bg-transparent",
+      isDarkMode && "dark border-gray-700"
     )}>
       <CardHeader className={cn(
         "flex flex-row items-center justify-between space-y-0 pb-2",
-        isEmbed ? "bg-transparent" : "dark:bg-gray-900"
+        isEmbed ? "bg-transparent" : "dark:bg-gray-900/50",
+        isDarkMode && "border-b border-gray-700"
       )}>
         <div className="space-y-1 min-w-0 flex-shrink">
-          <CardTitle className="truncate">{config.name}</CardTitle>
-          <CardDescription className="truncate">{config.description}</CardDescription>
+          <CardTitle className={cn(
+            "truncate",
+            isDarkMode && "text-gray-100"
+          )}>
+            {config.name}
+          </CardTitle>
+          <CardDescription className={cn(
+            "truncate",
+            isDarkMode && "text-gray-400"
+          )}>
+            {config.description}
+          </CardDescription>
         </div>
         <div className="flex items-center space-x-2 flex-shrink-0">
           <Button
@@ -220,18 +232,31 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
             size="icon"
             onClick={refreshData}
             disabled={isLoading}
-            className="dark:text-gray-400"
+            className={cn(
+              isDarkMode ? "text-gray-300 hover:text-white hover:bg-gray-800" : "dark:text-gray-400"
+            )}
           >
             <Icons.refresh className={cn("h-4 w-4", isLoading && "animate-spin")} />
           </Button>
 
           <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[100px] sm:w-[140px] dark:bg-gray-800 dark:text-gray-200">
+            <SelectTrigger className={cn(
+              "w-[100px] sm:w-[140px]",
+              isDarkMode ? "bg-gray-800 text-gray-200" : "dark:bg-gray-800 dark:text-gray-200"
+            )}>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="dark:bg-gray-800">
+            <SelectContent className={cn(
+              isDarkMode ? "bg-gray-800 border-gray-700" : "dark:bg-gray-800"
+            )}>
               {availableYears.map(year => (
-                <SelectItem key={year} value={year} className="dark:text-gray-200">
+                <SelectItem 
+                  key={year} 
+                  value={year} 
+                  className={cn(
+                    isDarkMode ? "text-gray-200 hover:bg-gray-700" : "dark:text-gray-200"
+                  )}
+                >
                   {year}
                 </SelectItem>
               ))}
@@ -309,7 +334,8 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
       </CardHeader>
       <CardContent className={cn(
         "overflow-x-auto pb-6",
-        isEmbed ? "bg-transparent pb-0" : "dark:bg-gray-900"
+        isEmbed ? "bg-transparent pb-0" : "dark:bg-gray-900/50",
+        isDarkMode && "text-gray-300"
       )}>
         <div className={cn("min-w-[800px]", isDarkMode && "dark")}>
           <HeatmapGrid
@@ -321,29 +347,52 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
         </div>
         {/* Stats section */}
         {config.insights && (
-          <div className="grid grid-cols-4 gap-4 mt-4">
-            {config.insights.averageTime && (
-              <div>
-                <p className="text-sm text-muted-foreground">Average Time</p>
-                <p className="text-2xl font-bold">{stats.averageTime.toFixed(1)}h</p>
-              </div>
-            )}
+          <div className={cn(
+            "grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4",
+            isDarkMode && "text-gray-300"
+          )}>
+            <div className="space-y-1">
+              <p className={cn(
+                "text-sm font-medium",
+                isDarkMode && "text-gray-400"
+              )}>
+                Average Time
+              </p>
+              <p className="text-2xl font-bold">
+                {formatDuration(stats.averageTime)}
+              </p>
+            </div>
             {config.insights.totalDays && (
               <div>
-                <p className="text-sm text-muted-foreground">Total Days</p>
+                <p className={cn(
+                  "text-sm font-medium",
+                  isDarkMode && "text-gray-400"
+                )}>
+                  Total Days
+                </p>
                 <p className="text-2xl font-bold">{stats.totalDays}</p>
               </div>
             )}
             {config.insights.totalTime && (
               <div>
-                <p className="text-sm text-muted-foreground">Total Time</p>
-                <p className="text-2xl font-bold">{stats.totalTime.toFixed(0)}h</p>
+                <p className={cn(
+                  "text-sm font-medium",
+                  isDarkMode && "text-gray-400"
+                )}>
+                  Total Time
+                </p>
+                <p className="text-2xl font-bold">{formatDuration(stats.totalTime)}</p>
               </div>
             )}
             {config.insights.standardDeviation && (
               <div>
-                <p className="text-sm text-muted-foreground">Std Dev</p>
-                <p className="text-2xl font-bold">{stats.standardDeviation.toFixed(1)}h</p>
+                <p className={cn(
+                  "text-sm font-medium",
+                  isDarkMode && "text-gray-400"
+                )}>
+                  Std Dev
+                </p>
+                <p className="text-2xl font-bold">{formatDuration(stats.standardDeviation)}</p>
               </div>
             )}
           </div>
@@ -359,4 +408,10 @@ function calculateStandardDeviation(values: number[]): number {
   const squareDiffs = values.map(value => Math.pow(value - mean, 2))
   const avgSquareDiff = squareDiffs.reduce((sum, val) => sum + val, 0) / values.length
   return Math.sqrt(avgSquareDiff)
+}
+
+function formatDuration(hours: number): string {
+  const wholeHours = Math.floor(hours)
+  const minutes = Math.round((hours - wholeHours) * 60)
+  return `${wholeHours}h ${minutes}m`
 } 
