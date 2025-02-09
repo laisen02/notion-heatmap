@@ -291,8 +291,18 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
                     <Icons.settings className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
+                <DropdownMenuContent 
+                  align="end"
+                  className={cn(
+                    isDarkMode && "bg-gray-800 border-gray-700"
+                  )}
+                >
+                  <DropdownMenuItem 
+                    asChild
+                    className={cn(
+                      isDarkMode && "text-gray-200 hover:bg-gray-700"
+                    )}
+                  >
                     <Link 
                       href={`/edit/${config.id}`}
                       className="flex items-center"
@@ -304,6 +314,9 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
                   <div className="sm:hidden">
                     <DropdownMenuItem
                       onClick={() => setIsDarkMode(!isDarkMode)}
+                      className={cn(
+                        isDarkMode && "text-gray-200 hover:bg-gray-700"
+                      )}
                     >
                       {isDarkMode ? (
                         <Icons.sun className="mr-2 h-4 w-4" />
@@ -314,13 +327,19 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={handleCopyEmbed}
+                      className={cn(
+                        isDarkMode && "text-gray-200 hover:bg-gray-700"
+                      )}
                     >
                       <Icons.link className="mr-2 h-4 w-4" />
                       Copy Embed Link
                     </DropdownMenuItem>
                   </div>
                   <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
+                    className={cn(
+                      "text-destructive focus:text-destructive",
+                      isDarkMode && "hover:bg-gray-700"
+                    )}
                     onSelect={() => setShowDeleteAlert(true)}
                   >
                     <Icons.trash className="mr-2 h-4 w-4" />

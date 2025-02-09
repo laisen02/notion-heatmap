@@ -6,6 +6,7 @@ import { headers, cookies } from 'next/headers'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { SiteHeader } from "@/components/site-header"
 import { cn } from "@/lib/utils"
+import { ThemeProvider } from "@/components/theme-provider"
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -26,8 +27,11 @@ export default async function RootLayout({
   if (isEmbedPage) {
     return (
       <html lang="en" suppressHydrationWarning>
+        <head />
         <body className="bg-transparent min-h-0">
-          {children}
+          <ThemeProvider defaultTheme="system" storageKey="ui-theme">
+            {children}
+          </ThemeProvider>
         </body>
       </html>
     )
@@ -44,32 +48,35 @@ export default async function RootLayout({
 
     return (
       <html lang="en" suppressHydrationWarning>
+        <head />
         <body className={inter.className}>
-          <div className="relative flex min-h-screen flex-col">
-            {session ? (
-              <>
+          <ThemeProvider defaultTheme="system" storageKey="ui-theme">
+            <div className="relative flex min-h-screen flex-col">
+              {session ? (
+                <>
+                  <SiteHeader />
+                  <MainNav />
+                </>
+              ) : (
                 <SiteHeader />
-                <MainNav />
-              </>
-            ) : (
-              <SiteHeader />
-            )}
-            <main className="flex-1">
-              {children}
-            </main>
-          </div>
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              style: {
-                background: 'var(--background)',
-                color: 'var(--foreground)',
-                border: '1px solid var(--border)',
-              },
-              className: 'text-sm font-medium',
-              duration: 3000,
-            }}
-          />
+              )}
+              <main className="flex-1">
+                {children}
+              </main>
+            </div>
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                style: {
+                  background: 'var(--background)',
+                  color: 'var(--foreground)',
+                  border: '1px solid var(--border)',
+                },
+                className: 'text-sm font-medium',
+                duration: 3000,
+              }}
+            />
+          </ThemeProvider>
         </body>
       </html>
     )
@@ -77,12 +84,15 @@ export default async function RootLayout({
     console.error('Layout error:', error)
     return (
       <html lang="en" suppressHydrationWarning>
+        <head />
         <body className={inter.className}>
-          <div className="relative flex min-h-screen flex-col">
-            <SiteHeader />
-            <main className="flex-1">{children}</main>
-          </div>
-          <Toaster />
+          <ThemeProvider defaultTheme="system" storageKey="ui-theme">
+            <div className="relative flex min-h-screen flex-col">
+              <SiteHeader />
+              <main className="flex-1">{children}</main>
+            </div>
+            <Toaster />
+          </ThemeProvider>
         </body>
       </html>
     )
