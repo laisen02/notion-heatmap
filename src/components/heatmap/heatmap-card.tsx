@@ -373,12 +373,12 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
           {config.insights && (
             <div className={cn(
               "grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4",
-              "dark:text-gray-300"
+              isDarkMode ? "text-gray-300" : "text-gray-900"
             )}>
               <div className="space-y-1">
                 <p className={cn(
                   "text-sm font-medium",
-                  "dark:text-gray-400"
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
                 )}>
                   Average Time
                 </p>
@@ -390,7 +390,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
                 <div>
                   <p className={cn(
                     "text-sm font-medium",
-                    "dark:text-gray-400"
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
                   )}>
                     Total Days
                   </p>
@@ -401,7 +401,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
                 <div>
                   <p className={cn(
                     "text-sm font-medium",
-                    "dark:text-gray-400"
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
                   )}>
                     Total Time
                   </p>
@@ -412,7 +412,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
                 <div>
                   <p className={cn(
                     "text-sm font-medium",
-                    "dark:text-gray-400"
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
                   )}>
                     Std Dev
                   </p>

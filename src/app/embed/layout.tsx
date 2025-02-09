@@ -10,8 +10,8 @@ export default function EmbedLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen w-full">
-      <div className="bg-background min-h-screen w-full">
+    <div className="min-h-screen w-full transition-colors duration-200">
+      <div className="min-h-screen w-full transition-colors duration-200">
         {children}
         <Toaster
           position="top-center"
