@@ -26,10 +26,12 @@ export default async function RootLayout({
   // For embed pages, use a minimal layout
   if (isEmbedPage) {
     return (
-      <html lang="en" suppressHydrationWarning>
+      <html lang="en" suppressHydrationWarning className="light">
         <head />
-        <body className="bg-transparent min-h-0">
-          <ThemeProvider defaultTheme="system" storageKey="ui-theme">
+        <body className={cn(
+          "min-h-screen bg-background text-foreground"
+        )}>
+          <ThemeProvider defaultTheme="light" storageKey="ui-theme">
             {children}
           </ThemeProvider>
         </body>
@@ -47,10 +49,13 @@ export default async function RootLayout({
     } = await supabase.auth.getSession()
 
     return (
-      <html lang="en" suppressHydrationWarning>
+      <html lang="en" suppressHydrationWarning className="light">
         <head />
-        <body className={inter.className}>
-          <ThemeProvider defaultTheme="system" storageKey="ui-theme">
+        <body className={cn(
+          inter.className,
+          "min-h-screen bg-background text-foreground"
+        )}>
+          <ThemeProvider defaultTheme="light" storageKey="ui-theme">
             <div className="relative flex min-h-screen flex-col">
               {session ? (
                 <>
@@ -83,10 +88,13 @@ export default async function RootLayout({
   } catch (error) {
     console.error('Layout error:', error)
     return (
-      <html lang="en" suppressHydrationWarning>
+      <html lang="en" suppressHydrationWarning className="light">
         <head />
-        <body className={inter.className}>
-          <ThemeProvider defaultTheme="system" storageKey="ui-theme">
+        <body className={cn(
+          inter.className,
+          "min-h-screen bg-background text-foreground"
+        )}>
+          <ThemeProvider defaultTheme="light" storageKey="ui-theme">
             <div className="relative flex min-h-screen flex-col">
               <SiteHeader />
               <main className="flex-1">{children}</main>
