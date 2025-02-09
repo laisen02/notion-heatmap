@@ -1,6 +1,9 @@
+"use client"
+
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { HeatmapCard } from "@/components/heatmap/heatmap-card"
+import { EmbedThemeProvider } from "@/context/theme-context"
 
 async function getHeatmapData(heatmapId: string) {
   const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notion/data`, {
@@ -63,13 +66,15 @@ export default async function EmbedPage({ params }: { params: { id: string } }) 
   const data = await getHeatmapData(config.id)
 
   return (
-    <div className="p-2 bg-transparent w-full h-full">
-      <HeatmapCard
-        config={config}
-        data={data}
-        isEmbed={true}
-        showControls={true}
-      />
-    </div>
+    <EmbedThemeProvider>
+      <div className="p-2 w-full h-full">
+        <HeatmapCard
+          config={config}
+          data={data}
+          isEmbed={true}
+          showControls={true}
+        />
+      </div>
+    </EmbedThemeProvider>
   )
 } 
