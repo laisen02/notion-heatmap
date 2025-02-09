@@ -38,14 +38,22 @@ module.exports = {
         headers: [
           {
             key: 'X-Frame-Options',
-            value: 'ALLOW-FROM https://*.notion.so'
+            value: 'ALLOWALL'
           },
           {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://*.notion.so https://notion.so https://www.notion.so;"
+            value: "frame-ancestors *; default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:;"
           },
           {
             key: 'Access-Control-Allow-Origin',
+            value: '*'
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, OPTIONS'
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
             value: '*'
           }
         ],

@@ -29,6 +29,7 @@ export const metadata = {
   referrer: 'no-referrer',
   other: {
     'notion:renderer': 'iframe',
+    'robots': 'noindex',
   },
   // Updated headers for Notion embedding
   'x-frame-options': 'SAMEORIGIN',
@@ -38,6 +39,11 @@ export const metadata = {
     type: 'website',
     title: 'Notion Heatmap',
     description: 'Heatmap visualization',
+    'og:site_name': 'Notion Heatmap',
+    'og:image': `${process.env.NEXT_PUBLIC_APP_URL}/og-image.png`,
+  },
+  verification: {
+    'notion': 'notionheatmap',
   }
 }
 

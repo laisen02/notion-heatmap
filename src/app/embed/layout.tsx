@@ -15,6 +15,10 @@ export default function EmbedLayout({
         <meta property="og:title" content="Notion Heatmap" />
         <meta property="og:description" content="Heatmap visualization" />
         <meta name="notion:renderer" content="iframe" />
+        <meta name="robots" content="noindex" />
+        <meta name="notion:domain" content="notionheatmap.com" />
+        <meta name="notion:embed-type" content="iframe" />
+        <meta http-equiv="X-Frame-Options" content="ALLOWALL" />
       </head>
       <body className="bg-transparent min-h-0">
         <div className="notion-embed">
