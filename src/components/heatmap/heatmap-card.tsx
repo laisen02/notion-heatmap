@@ -50,6 +50,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
   const [showDeleteAlert, setShowDeleteAlert] = useState(false)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
   const [availableYears, setAvailableYears] = useState<string[]>([])
+  const [isDarkMode, setIsDarkMode] = useState(false)
 
   const stats = useMemo(() => {
     if (!data || data.length === 0) {
@@ -204,7 +205,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
     <Card className={cn(
       "overflow-hidden max-w-[1000px] mx-auto",
       isEmbed && "border-0 shadow-none bg-transparent",
-      "dark:border-gray-700"
+      isDarkMode && "dark border-gray-700"
     )}>
       <CardHeader className={cn(
         "flex flex-row items-center justify-between space-y-0 pb-2",
@@ -261,6 +262,21 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
             </SelectContent>
           </Select>
 
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={cn(
+              isDarkMode && "text-gray-300 hover:text-white hover:bg-gray-800"
+            )}
+          >
+            {isDarkMode ? (
+              <Icons.sun className="h-4 w-4" />
+            ) : (
+              <Icons.moon className="h-4 w-4" />
+            )}
+          </Button>
+
           {!isEmbed && (
             <>
               <Button
@@ -280,7 +296,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
                 <DropdownMenuContent 
                   align="end"
                   className={cn(
-                    "dark:bg-gray-800 border-gray-700"
+                    isDarkMode && "bg-gray-800 border-gray-700"
                   )}
                 >
                   <DropdownMenuItem 
@@ -299,13 +315,17 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
                   </DropdownMenuItem>
                   <div className="sm:hidden">
                     <DropdownMenuItem
-                      onClick={handleCopyEmbed}
+                      onClick={() => setIsDarkMode(!isDarkMode)}
                       className={cn(
-                        "dark:text-gray-200 hover:bg-gray-700"
+                        isDarkMode && "text-gray-200 hover:bg-gray-700"
                       )}
                     >
-                      <Icons.link className="mr-2 h-4 w-4" />
-                      Copy Embed Link
+                      {isDarkMode ? (
+                        <Icons.sun className="mr-2 h-4 w-4" />
+                      ) : (
+                        <Icons.moon className="mr-2 h-4 w-4" />
+                      )}
+                      {isDarkMode ? 'Light Mode' : 'Dark Mode'}
                     </DropdownMenuItem>
                   </div>
                   <DropdownMenuItem

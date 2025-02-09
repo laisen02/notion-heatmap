@@ -87,21 +87,21 @@ const colorClasses: Record<ColorTheme, string[]> = {
 
 const colorThemes: Record<ColorTheme, string[]> = {
   github: [
-    'bg-[#ebedf0] dark:bg-gray-800/40 border border-gray-200/10', // Empty cell color
+    'bg-[#ebedf0] dark:bg-gray-800/30', // Empty cell - lighter in dark mode, back to original in light
     'bg-[#9be9a8] dark:bg-green-700/40',
     'bg-[#40c463] dark:bg-green-600/60',
     'bg-[#30a14e] dark:bg-green-500/80',
     'bg-[#216e39] dark:bg-green-400',
   ],
   gitlab: [
-    'bg-[#ededed] dark:bg-gray-800/40 border border-gray-200/10',
+    'bg-[#ededed] dark:bg-gray-800/30',
     'bg-[#acd5f2] dark:bg-blue-700/40',
     'bg-[#7fa8d1] dark:bg-blue-600/60',
     'bg-[#49729b] dark:bg-blue-500/80',
     'bg-[#254e77] dark:bg-blue-400',
   ],
   notion: [
-    'bg-[#f0f0f0] dark:bg-gray-800/40 border border-gray-200/10',
+    'bg-[#f0f0f0] dark:bg-gray-800/30',
     'bg-[#ffd5cc] dark:bg-orange-700/40',
     'bg-[#ff9c8f] dark:bg-orange-600/60',
     'bg-[#ff6b55] dark:bg-orange-500/80',
