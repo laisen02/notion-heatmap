@@ -182,7 +182,8 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
 
   const handleCopyEmbed = async () => {
     try {
-      const embedUrl = `${window.location.origin}/embed/${config.id}`
+      // Add /embed to make it work with Notion's embed block
+      const embedUrl = `${window.location.origin}/embed/${config.id}/embed`
       await navigator.clipboard.writeText(embedUrl)
       
       toast.success("Embed link copied!", {
@@ -203,9 +204,12 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
   return (
     <Card className={cn(
       "overflow-hidden max-w-[1000px] mx-auto",
-      isEmbed && "border-0 shadow-none"
+      isEmbed && "border-0 shadow-none bg-transparent"
     )}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 dark:bg-gray-900">
+      <CardHeader className={cn(
+        "flex flex-row items-center justify-between space-y-0 pb-2",
+        isEmbed ? "bg-transparent" : "dark:bg-gray-900"
+      )}>
         <div className="space-y-1 min-w-0 flex-shrink">
           <CardTitle className="truncate">{config.name}</CardTitle>
           <CardDescription className="truncate">{config.description}</CardDescription>
@@ -304,8 +308,8 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
         </div>
       </CardHeader>
       <CardContent className={cn(
-        "overflow-x-auto pb-6 dark:bg-gray-900",
-        isEmbed && "pb-0"
+        "overflow-x-auto pb-6",
+        isEmbed ? "bg-transparent pb-0" : "dark:bg-gray-900"
       )}>
         <div className={cn("min-w-[800px]", isDarkMode && "dark")}>
           <HeatmapGrid

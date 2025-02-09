@@ -19,12 +19,23 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const pathname = headers().get("x-pathname") || ""
+  const isEmbedPage = pathname.startsWith("/embed")
+
+  // For embed pages, use a minimal layout
+  if (isEmbedPage) {
+    return (
+      <html lang="en" suppressHydrationWarning>
+        <body className="bg-transparent min-h-0">
+          {children}
+        </body>
+      </html>
+    )
+  }
+
+  // Regular layout for non-embed pages
   const cookieStore = cookies()
   const supabase = createServerComponentClient({ cookies: () => cookieStore })
-  const pathname = headers().get("x-pathname") || ""
-
-  // Don't show header in embed view
-  const isEmbedPage = pathname.startsWith("/embed")
 
   try {
     const {
@@ -35,19 +46,15 @@ export default async function RootLayout({
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className}>
           <div className="relative flex min-h-screen flex-col">
-            {!isEmbedPage && (
+            {session ? (
               <>
-                {session ? (
-                  <>
-                    <SiteHeader />
-                    <MainNav />
-                  </>
-                ) : (
-                  <SiteHeader />
-                )}
+                <SiteHeader />
+                <MainNav />
               </>
+            ) : (
+              <SiteHeader />
             )}
-            <main className={cn("flex-1", isEmbedPage && "min-h-0")}>
+            <main className="flex-1">
               {children}
             </main>
           </div>
