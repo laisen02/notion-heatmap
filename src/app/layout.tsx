@@ -125,7 +125,7 @@ export default async function RootLayout({
           <ThemeProvider defaultTheme="light" storageKey="ui-theme">
             <div className="relative flex min-h-screen flex-col">
               <SiteHeader />
-              <main className="flex-1">{children}</main>
+              <main className="flex-1 relative z-0">{children}</main>
             </div>
             <Toaster
               position="top-center"
@@ -133,13 +133,12 @@ export default async function RootLayout({
               richColors
               closeButton
               visibleToasts={6}
-              theme={theme}
               toastOptions={{
                 duration: 5000,
                 className: "fixed !bg-background !text-foreground border border-border shadow-lg",
                 style: {
                   marginTop: '4rem',
-                  zIndex: 99999,
+                  zIndex: 999999,
                   position: 'fixed',
                   background: 'var(--background)',
                   color: 'var(--foreground)',
@@ -148,6 +147,7 @@ export default async function RootLayout({
                   maxWidth: '420px',
                   transform: 'translateZ(0)',
                   willChange: 'transform',
+                  pointerEvents: 'auto',
                 },
               }}
             />

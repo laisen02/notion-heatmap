@@ -217,237 +217,199 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
   }
 
   return (
-    <div className={cn(
-      "relative isolate overflow-hidden",
-      isDarkMode ? "[&_*]:dark" : "[&_*]:light"
-    )}>
-      <Card className={cn(
-        "max-w-[1000px] mx-auto bg-background",
-        "min-w-fit relative",
-        isEmbed && "shadow-sm",
-        isDarkMode 
-          ? "border-gray-700" 
-          : "border-gray-200",
-        "rounded-lg border"
-      )}>
-        <CardHeader className={cn(
-          "flex flex-row items-center justify-between space-y-0 pb-2 bg-background",
-        )}>
-          <div className="overflow-x-auto flex-grow pr-4">
-            <div className="min-w-[800px]">
-              <div className="space-y-1 min-w-0">
-                <CardTitle className={cn(
-                  "truncate",
-                  isDarkMode ? "text-gray-100" : "text-gray-900"
+    <div className="w-full overflow-x-auto">
+      <div className="min-w-max border rounded-lg p-4">
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">{config.name}</h3>
+            <div className={cn(
+              "flex items-center space-x-2 flex-shrink-0",
+              "sticky right-0 bg-background pl-2",
+              isDarkMode ? "bg-gray-900" : "bg-white"
+            )}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={refreshData}
+                disabled={isLoading}
+                className={cn(
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                )}
+              >
+                <Icons.refresh className={cn("h-4 w-4", isLoading && "animate-spin")} />
+              </Button>
+
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger className={cn(
+                  "w-[100px] sm:w-[140px]",
+                  isDarkMode 
+                    ? "bg-gray-800 text-gray-200" 
+                    : "bg-white text-gray-900"
                 )}>
-                  {config.name}
-                </CardTitle>
-                <CardDescription className={cn(
-                  "truncate",
-                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className={cn(
+                  isDarkMode ? "bg-gray-800" : "bg-white"
                 )}>
-                  {config.description}
-                </CardDescription>
-              </div>
+                  {availableYears.map(year => (
+                    <SelectItem 
+                      key={year} 
+                      value={year} 
+                      className={cn(
+                        isDarkMode 
+                          ? "text-gray-200 hover:bg-gray-700" 
+                          : "text-gray-900 hover:bg-gray-100"
+                      )}
+                    >
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleThemeToggle}
+                className={cn(
+                  isDarkMode && "text-gray-300 hover:text-white hover:bg-gray-800"
+                )}
+              >
+                {isDarkMode ? (
+                  <Icons.sun className="h-4 w-4" />
+                ) : (
+                  <Icons.moon className="h-4 w-4" />
+                )}
+              </Button>
+
+              {!isEmbed && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleCopyEmbed}
+                  >
+                    <Icons.link className="h-4 w-4" />
+                  </Button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <Icons.settings className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      align="end"
+                      className={cn(
+                        isDarkMode && "bg-gray-800 border-gray-700"
+                      )}
+                    >
+                      <DropdownMenuItem 
+                        asChild
+                        className={cn(
+                          "dark:text-gray-200 hover:bg-gray-700"
+                        )}
+                      >
+                        <Link 
+                          href={`/edit/${config.id}`}
+                          className="flex items-center"
+                        >
+                          <Icons.edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </Link>
+                      </DropdownMenuItem>
+                      <div className="sm:hidden">
+                        <DropdownMenuItem
+                          onClick={() => setIsDarkMode(!isDarkMode)}
+                          className={cn(
+                            isDarkMode && "text-gray-200 hover:bg-gray-700"
+                          )}
+                        >
+                          {isDarkMode ? (
+                            <Icons.sun className="mr-2 h-4 w-4" />
+                          ) : (
+                            <Icons.moon className="mr-2 h-4 w-4" />
+                          )}
+                          {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+                        </DropdownMenuItem>
+                      </div>
+                      <DropdownMenuItem
+                        className={cn(
+                          "text-destructive focus:text-destructive",
+                          "dark:hover:bg-gray-700"
+                        )}
+                        onSelect={() => setShowDeleteAlert(true)}
+                      >
+                        <Icons.trash className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              )}
             </div>
           </div>
-          <div className={cn(
-            "flex items-center space-x-2 flex-shrink-0",
-            "sticky right-0 bg-background pl-2",
-            isDarkMode ? "bg-gray-900" : "bg-white"
-          )}>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={refreshData}
-              disabled={isLoading}
-              className={cn(
-                isDarkMode ? "text-gray-400" : "text-gray-600"
-              )}
-            >
-              <Icons.refresh className={cn("h-4 w-4", isLoading && "animate-spin")} />
-            </Button>
 
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className={cn(
-                "w-[100px] sm:w-[140px]",
-                isDarkMode 
-                  ? "bg-gray-800 text-gray-200" 
-                  : "bg-white text-gray-900"
-              )}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className={cn(
-                isDarkMode ? "bg-gray-800" : "bg-white"
-              )}>
-                {availableYears.map(year => (
-                  <SelectItem 
-                    key={year} 
-                    value={year} 
-                    className={cn(
-                      isDarkMode 
-                        ? "text-gray-200 hover:bg-gray-700" 
-                        : "text-gray-900 hover:bg-gray-100"
-                    )}
-                  >
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <HeatmapGrid
+            data={filteredData}
+            colorTheme={config.color_theme as ColorTheme}
+            weekStart={config.week_start}
+            isDarkMode={isDarkMode}
+          />
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleThemeToggle}
-              className={cn(
-                isDarkMode && "text-gray-300 hover:text-white hover:bg-gray-800"
-              )}
-            >
-              {isDarkMode ? (
-                <Icons.sun className="h-4 w-4" />
-              ) : (
-                <Icons.moon className="h-4 w-4" />
-              )}
-            </Button>
-
-            {!isEmbed && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleCopyEmbed}
-                >
-                  <Icons.link className="h-4 w-4" />
-                </Button>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Icons.settings className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent 
-                    align="end"
-                    className={cn(
-                      isDarkMode && "bg-gray-800 border-gray-700"
-                    )}
-                  >
-                    <DropdownMenuItem 
-                      asChild
-                      className={cn(
-                        "dark:text-gray-200 hover:bg-gray-700"
-                      )}
-                    >
-                      <Link 
-                        href={`/edit/${config.id}`}
-                        className="flex items-center"
-                      >
-                        <Icons.edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </Link>
-                    </DropdownMenuItem>
-                    <div className="sm:hidden">
-                      <DropdownMenuItem
-                        onClick={() => setIsDarkMode(!isDarkMode)}
-                        className={cn(
-                          isDarkMode && "text-gray-200 hover:bg-gray-700"
-                        )}
-                      >
-                        {isDarkMode ? (
-                          <Icons.sun className="mr-2 h-4 w-4" />
-                        ) : (
-                          <Icons.moon className="mr-2 h-4 w-4" />
-                        )}
-                        {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-                      </DropdownMenuItem>
-                    </div>
-                    <DropdownMenuItem
-                      className={cn(
-                        "text-destructive focus:text-destructive",
-                        "dark:hover:bg-gray-700"
-                      )}
-                      onSelect={() => setShowDeleteAlert(true)}
-                    >
-                      <Icons.trash className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className={cn(
-          "bg-background relative",
-          isEmbed ? "pb-2" : "pb-4"
-        )}>
-          <div className="overflow-x-auto">
-            <div className="min-w-[800px]">
-              <div className="mb-4">
-                <HeatmapGrid
-                  data={filteredData}
-                  colorTheme={config.color_theme as ColorTheme}
-                  weekStart={config.week_start}
-                  isDarkMode={isDarkMode}
-                />
-              </div>
-
-              {config.insights && (
-                <div className={cn(
-                  "grid grid-cols-2 sm:grid-cols-4 gap-4 mb-1",
-                  isDarkMode ? "text-gray-300" : "text-gray-900"
+          {config.insights && (
+            <div className={cn(
+              "grid grid-cols-2 sm:grid-cols-4 gap-4 mb-1",
+              isDarkMode ? "text-gray-300" : "text-gray-900"
+            )}>
+              <div className="space-y-1">
+                <p className={cn(
+                  "text-sm font-medium",
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
                 )}>
-                  <div className="space-y-1">
-                    <p className={cn(
-                      "text-sm font-medium",
-                      isDarkMode ? "text-gray-400" : "text-gray-600"
-                    )}>
-                      Average Time
-                    </p>
-                    <p className="text-2xl font-bold">
-                      {formatDuration(stats.averageTime)}
-                    </p>
-                  </div>
-                  {config.insights.totalDays && (
-                    <div>
-                      <p className={cn(
-                        "text-sm font-medium",
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      )}>
-                        Total Days
-                      </p>
-                      <p className="text-2xl font-bold">{stats.totalDays}</p>
-                    </div>
-                  )}
-                  {config.insights.totalTime && (
-                    <div>
-                      <p className={cn(
-                        "text-sm font-medium",
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      )}>
-                        Total Time
-                      </p>
-                      <p className="text-2xl font-bold">{formatDuration(stats.totalTime)}</p>
-                    </div>
-                  )}
-                  {config.insights.standardDeviation && (
-                    <div>
-                      <p className={cn(
-                        "text-sm font-medium",
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      )}>
-                        Std Dev
-                      </p>
-                      <p className="text-2xl font-bold">{formatDuration(stats.standardDeviation)}</p>
-                    </div>
-                  )}
+                  Average Time
+                </p>
+                <p className="text-2xl font-bold">
+                  {formatDuration(stats.averageTime)}
+                </p>
+              </div>
+              {config.insights.totalDays && (
+                <div>
+                  <p className={cn(
+                    "text-sm font-medium",
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  )}>
+                    Total Days
+                  </p>
+                  <p className="text-2xl font-bold">{stats.totalDays}</p>
+                </div>
+              )}
+              {config.insights.totalTime && (
+                <div>
+                  <p className={cn(
+                    "text-sm font-medium",
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  )}>
+                    Total Time
+                  </p>
+                  <p className="text-2xl font-bold">{formatDuration(stats.totalTime)}</p>
+                </div>
+              )}
+              {config.insights.standardDeviation && (
+                <div>
+                  <p className={cn(
+                    "text-sm font-medium",
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  )}>
+                    Std Dev
+                  </p>
+                  <p className="text-2xl font-bold">{formatDuration(stats.standardDeviation)}</p>
                 </div>
               )}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

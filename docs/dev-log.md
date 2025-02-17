@@ -4,11 +4,8 @@
 # task list
 there is sometime duplicate nav bar appear on dashboard. make sure the nav bar follow @ condition written here.  
 
+ 
 
-I just notice the reset password button on sign up login page disapapear, i dont see any reset password button
-
-
-sign up using esixting account still didnt show notification to user about the email is already been register and let them to sign in 
 
 update and complete the edit heatmap button function, whenever user click the edit heatmap, it should land on a page that look almost the same with the create new heatmap page, the only different is those input column will be filled with the selected heatmap info that stored in supabase to show here, for user to edit and update them. after edit and click the update button, those info should be update to supabase database and the heatmap info will be changes and update to the newest info set by user. 
 
@@ -568,3 +565,50 @@ Note: This log will be updated as development progresses. Each update will inclu
 2. Optimize logo loading for different screen sizes
 3. Further enhance dark mode support
 4. Consider adding animation transitions for logo/branding elements
+
+## 2024-02-17
+
+### UI/UX Improvements
+
+1. Fixed Notification System:
+   - Improved toast notifications positioning and visibility
+   - Added proper stacking for multiple notifications
+   - Increased visibility duration to 5 seconds
+   - Added GPU acceleration for smoother animations
+   - Fixed notification consistency across browsers
+   - Added shadow and better contrast
+
+2. Enhanced Heatmap Visualization:
+   - Fixed horizontal scrolling issues for heatmap grid
+   - Improved month and day label positioning
+   - Added proper width constraints for grid cells
+   - Made heatmap fully scrollable in narrow viewports
+   - Fixed sticky positioning for day labels
+   - Added minimum width requirements for better display
+
+3. Improved Mobile Responsiveness:
+   - Added responsive grid for heatmap insights
+   - Fixed mobile navigation with dropdown menu
+   - Improved spacing and layout on smaller screens
+   - Added minimum width constraints for insight cards
+   - Enhanced overflow handling for narrow viewports
+
+4. Technical Improvements:
+   - Added proper z-index management
+   - Improved animation performance with GPU acceleration
+   - Enhanced theme consistency
+   - Fixed layout issues in various viewport sizes
+   - Improved accessibility for mobile navigation
+
+### Next Steps
+1. Consider implementing:
+   - Offline support for heatmap data
+   - Better data caching strategies
+   - Progressive loading for large datasets
+   - More customization options for heatmap display
+
+2. Potential improvements:
+   - Add export functionality
+   - Implement data backup options
+   - Add more visualization types
+   - Enhance mobile touch interactions

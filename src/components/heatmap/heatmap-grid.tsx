@@ -231,67 +231,65 @@ export function HeatmapGrid({
   }, [dates, weeks.length])
 
   return (
-    <div className="relative w-full">
-      <div className="overflow-x-auto pb-4 max-w-full">
-        <div className="min-w-max inline-block">
-          <div className={cn("grid gap-px", className)}>
-            {/* Month labels */}
-            <div className="flex pl-8 min-w-max">
-              {monthLabels.map(({ month, offset }, i) => (
-                <div
-                  key={`${month}-${i}`}
-                  className={cn(
-                    "text-xs whitespace-nowrap",
-                    isDarkMode ? "text-gray-400" : "text-gray-500"
-                  )}
-                  style={{
-                    position: 'relative',
-                    left: `${offset * 16}px`,
-                    minWidth: '32px',
-                  }}
-                >
-                  {month}
-                </div>
+    <div className="relative w-full overflow-x-auto">
+      <div className="min-w-max pb-4">
+        <div className={cn("grid gap-px", className)}>
+          {/* Month labels */}
+          <div className="flex pl-8 sticky left-0">
+            {monthLabels.map(({ month, offset }, i) => (
+              <div
+                key={`${month}-${i}`}
+                className={cn(
+                  "text-xs whitespace-nowrap",
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                )}
+                style={{
+                  position: 'relative',
+                  left: `${offset * 16}px`,
+                  minWidth: '32px',
+                }}
+              >
+                {month}
+              </div>
+            ))}
+          </div>
+
+          <div className="flex">
+            {/* Day labels */}
+            <div className={cn(
+              "flex flex-col justify-between pr-2 text-xs h-[116px] sticky left-0 bg-background z-20",
+              isDarkMode ? "text-gray-400" : "text-gray-500"
+            )}>
+              {DAYS.map(day => (
+                <div key={day}>{day}</div>
               ))}
             </div>
 
-            <div className="flex min-w-max">
-              {/* Day labels */}
-              <div className={cn(
-                "flex flex-col justify-between pr-2 text-xs h-[116px] sticky left-0 bg-background z-10",
-                isDarkMode ? "text-gray-400" : "text-gray-500"
-              )}>
-                {DAYS.map(day => (
-                  <div key={day}>{day}</div>
-                ))}
-              </div>
-
-              {/* Heatmap grid */}
-              <div className="flex gap-1 min-w-max">
-                {weeks.map((week, weekIndex) => (
-                  <div key={weekIndex} className="grid grid-rows-7 gap-1 flex-shrink-0 w-4">
-                    {week.map((day, dayIndex) => {
-                      const intensity = getColorIntensity(day.value)
-                      return (
-                        <Tooltip
-                          key={`${weekIndex}-${dayIndex}`}
-                          content={day.date ? `${day.date}: ${day.value.toFixed(1)} hours` : ''}
-                          delayDuration={0}
-                        >
-                          <div
-                            className={cn(
-                              "w-3 h-3 rounded-sm transition-all duration-100",
-                              day.date ? colorThemes[colorTheme](isDarkMode)[intensity] : 
-                                (isDarkMode ? "bg-gray-800/30" : "bg-gray-100"),
-                              "hover:ring-2 hover:ring-offset-2 hover:ring-ring hover:ring-offset-background"
-                            )}
-                          />
-                        </Tooltip>
-                      )
-                    })}
-                  </div>
-                ))}
-              </div>
+            {/* Heatmap grid */}
+            <div className="flex gap-1">
+              {weeks.map((week, weekIndex) => (
+                <div key={weekIndex} className="grid grid-rows-7 gap-1 flex-shrink-0 w-4">
+                  {week.map((day, dayIndex) => {
+                    const intensity = getColorIntensity(day.value)
+                    return (
+                      <Tooltip
+                        key={`${weekIndex}-${dayIndex}`}
+                        content={day.date ? `${day.date}: ${day.value.toFixed(1)} hours` : ''}
+                        delayDuration={0}
+                      >
+                        <div
+                          className={cn(
+                            "w-3 h-3 rounded-sm transition-all duration-100",
+                            day.date ? colorThemes[colorTheme](isDarkMode)[intensity] : 
+                              (isDarkMode ? "bg-gray-800/30" : "bg-gray-100"),
+                            "hover:ring-2 hover:ring-offset-2 hover:ring-ring hover:ring-offset-background"
+                          )}
+                        />
+                      </Tooltip>
+                    )
+                  })}
+                </div>
+              ))}
             </div>
           </div>
         </div>

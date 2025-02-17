@@ -9,6 +9,8 @@ import type { HeatmapConfig, HeatmapData } from "@/types/heatmap"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
 
+const MotionDiv = motion.div
+
 export function HeroSection() {
   const [mounted, setMounted] = useState(false)
   const [demoData, setDemoData] = useState<HeatmapData[]>([])
@@ -89,8 +91,7 @@ export function HeroSection() {
 
       {/* Content */}
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          as="div"
+        <MotionDiv
           className="text-center relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -119,7 +120,7 @@ export function HeroSection() {
 
           {/* Demo Heatmap */}
           {mounted && (
-            <motion.div
+            <MotionDiv
               className="mt-16"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -141,9 +142,9 @@ export function HeroSection() {
                   showControls={true}
                 />
               </div>
-            </motion.div>
+            </MotionDiv>
           )}
-        </motion.div>
+        </MotionDiv>
       </div>
     </section>
   )
