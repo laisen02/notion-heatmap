@@ -69,12 +69,15 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
   const handleOAuthSignIn = async () => {
     try {
       setIsLoading(true)
+      const supabase = createClientComponentClient()
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
       })
+
       if (error) throw error
     } catch (error: any) {
       console.error("OAuth error:", error)
