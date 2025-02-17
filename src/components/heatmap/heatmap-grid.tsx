@@ -232,11 +232,11 @@ export function HeatmapGrid({
 
   return (
     <div className="relative w-full">
-      <div className="overflow-x-auto pb-4">
-        <div className="min-w-max">
+      <div className="overflow-x-auto pb-4 max-w-full">
+        <div className="min-w-max inline-block">
           <div className={cn("grid gap-px", className)}>
             {/* Month labels */}
-            <div className="flex pl-8">
+            <div className="flex pl-8 min-w-max">
               {monthLabels.map(({ month, offset }, i) => (
                 <div
                   key={`${month}-${i}`}
@@ -247,6 +247,7 @@ export function HeatmapGrid({
                   style={{
                     position: 'relative',
                     left: `${offset * 16}px`,
+                    minWidth: '32px',
                   }}
                 >
                   {month}
@@ -254,7 +255,7 @@ export function HeatmapGrid({
               ))}
             </div>
 
-            <div className="flex">
+            <div className="flex min-w-max">
               {/* Day labels */}
               <div className={cn(
                 "flex flex-col justify-between pr-2 text-xs h-[116px] sticky left-0 bg-background z-10",
@@ -266,9 +267,9 @@ export function HeatmapGrid({
               </div>
 
               {/* Heatmap grid */}
-              <div className="flex gap-1 overflow-x-auto">
+              <div className="flex gap-1 min-w-max">
                 {weeks.map((week, weekIndex) => (
-                  <div key={weekIndex} className="grid grid-rows-7 gap-1 flex-shrink-0">
+                  <div key={weekIndex} className="grid grid-rows-7 gap-1 flex-shrink-0 w-4">
                     {week.map((day, dayIndex) => {
                       const intensity = getColorIntensity(day.value)
                       return (
