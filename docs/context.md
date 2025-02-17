@@ -188,6 +188,30 @@ When a user creates a new heatmap, the system generates an embed link for the he
     - Step 1: Click "Delete My Account".
     - Step 2: Confirm deletion by re-entering their username and accepting a permanent deletion warning.
 
+---
+
+Nav bar
+when user land on www.notionheatmap.com, nav bar just show :
+- logo & name.
+- dark mode toggle
+- log in
+
+when user didnt login condition, but there get a link via other who share their profile link to others to see, nav bar should show 
+- logo & name
+- how It Works
+- create heatmap ( navigate to login page, as they need to log in, have a account only can create a new heatmap)
+- dark mode toggle
+- login
+
+when user in login condition, nav bar should show
+- logo & name
+- dashboard
+- profile
+- create
+- settings
+- dark mode toggle
+- sign out
+
 
 ---
 

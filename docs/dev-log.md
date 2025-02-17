@@ -427,15 +427,117 @@ Note: This log will be updated as development progresses. Each update will inclu
 
 # task list
 there is sometime duplicate nav bar appear on dashboard. make sure the nav bar follow @ condition written here.  
+
+
 I just notice the reset password button on sign up login page disapapear, i dont see any reset password button
+
+
 sign up using esixting account still didnt show notification to user about the email is already been register and let them to sign in 
+
 update and complete the edit heatmap button function, whenever user click the edit heatmap, it should land on a page that look almost the same with the create new heatmap page, the only different is those input column will be filled with the selected heatmap info that stored in supabase to show here, for user to edit and update them. after edit and click the update button, those info should be update to supabase database and the heatmap info will be changes and update to the newest info set by user. 
 
-I noticed when I test in firefox browser, those notification is showing correctly whenever anythings happen like refresh successful and others. but using microsoft edge browser testing, it didnt show any notification whenever i carry on any of the same testing, no login success show, no refresh success show and so.
+
 show loading or creating or logging in whenever it take some time to navigate to another page. I noticed most of the time those success notification pop out too fast, but page still havet navigate. example after log in success, I already see log in success but nothing happen, i confuse what is going on, and only wait sometime then only it take me to the dashboard. whenever you want to show success notification, make sure it done the step and no waiting for user. you can show success at the same time when You navagate to the next page, then no confussion, just show loading or processing before, in the wait time. same with create new heatmap. the successful create new heatmap show only be show at the time when successful navigate user back to dashboard, just show creating heatmap or anythings when you need some time to process and navigate.
+
+
+
+I have a logo, where should I put it in and add on place?
+
+
+
+
 
 
 I want to create a browser tab management browser extension
 
 It store all user tab url info in their computer in free plan mode.
 If they want sync feature, they will have to go with paid plan, and only then we store their info on supabase 
+
+## 2024-03-20
+
+### Authentication Improvements
+1. Added password reset functionality:
+   - Created ForgotPasswordPage component
+   - Implemented password reset email flow
+   - Added ResetPasswordButton component
+   - Created reset password and update password pages
+
+2. Enhanced error handling:
+   - Added ErrorBoundary component for graceful error handling
+   - Created ErrorMessage component for consistent error display
+   - Added global error handling with global-error.tsx
+   - Implemented clear-site-data route for cache clearing
+
+### Heatmap Enhancements
+1. Added heatmap data caching:
+   - Created heatmap_data table in Supabase
+   - Implemented RLS policies for data security
+   - Added automatic cache updates
+
+2. Improved heatmap visualization:
+   - Added support for multiple color themes
+   - Implemented dark mode support for heatmaps
+   - Added tooltips for data points
+   - Enhanced grid layout and responsiveness
+
+3. Added heatmap editing capabilities:
+   - Created HeatmapEditor component
+   - Added support for interactive cell editing
+   - Implemented value slider for intensity control
+   - Added save functionality with optimistic updates
+
+### UI/UX Improvements
+1. Enhanced theme support:
+   - Added ThemeProvider for consistent theming
+   - Implemented ThemeToggle component
+   - Added support for system theme preference
+   - Created EmbedThemeProvider for embedded heatmaps
+
+2. Improved site header:
+   - Added responsive navigation
+   - Implemented proper logo placement
+   - Enhanced mobile menu functionality
+   - Added theme toggle in header
+
+3. Enhanced embed functionality:
+   - Created dedicated embed routes
+   - Added proper CORS and CSP headers
+   - Implemented embed-specific layout
+   - Added theme support for embeds
+
+### Database Schema Updates
+1. Added new tables and columns:
+   ```sql
+   -- Added heatmap_data table
+   CREATE TABLE heatmap_data (
+     id UUID PRIMARY KEY,
+     heatmap_id UUID REFERENCES heatmaps(id),
+     data JSONB,
+     updated_at TIMESTAMPTZ
+   );
+
+   -- Added values column to heatmaps
+   ALTER TABLE heatmaps 
+   ADD COLUMN values TEXT;
+   ```
+
+2. Enhanced security:
+   - Added RLS policies for new tables
+   - Implemented proper cascading deletes
+   - Added data validation constraints
+
+### Next Steps
+1. Performance optimizations:
+   - Implement data pagination
+   - Add request caching
+   - Optimize database queries
+
+2. Feature additions:
+   - Add data export functionality
+   - Implement batch operations
+   - Add more customization options
+
+3. Technical improvements:
+   - Enhance error recovery
+   - Add offline support
+   - Improve type safety

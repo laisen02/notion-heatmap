@@ -215,11 +215,12 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
 
   return (
     <div className={cn(
-      "relative isolate",
+      "relative isolate overflow-hidden",
       isDarkMode ? "[&_*]:dark" : "[&_*]:light"
     )}>
       <Card className={cn(
-        "overflow-hidden max-w-[1000px] mx-auto bg-background",
+        "max-w-[1000px] mx-auto bg-background",
+        "min-w-fit relative",
         isEmbed && "shadow-sm",
         isDarkMode 
           ? "border-gray-700" 
@@ -229,21 +230,29 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
         <CardHeader className={cn(
           "flex flex-row items-center justify-between space-y-0 pb-2 bg-background",
         )}>
-          <div className="space-y-1 min-w-0 flex-shrink">
-            <CardTitle className={cn(
-              "truncate",
-              isDarkMode ? "text-gray-100" : "text-gray-900"
-            )}>
-              {config.name}
-            </CardTitle>
-            <CardDescription className={cn(
-              "truncate",
-              isDarkMode ? "text-gray-400" : "text-gray-500"
-            )}>
-              {config.description}
-            </CardDescription>
+          <div className="overflow-x-auto flex-grow pr-4">
+            <div className="min-w-[800px]">
+              <div className="space-y-1 min-w-0">
+                <CardTitle className={cn(
+                  "truncate",
+                  isDarkMode ? "text-gray-100" : "text-gray-900"
+                )}>
+                  {config.name}
+                </CardTitle>
+                <CardDescription className={cn(
+                  "truncate",
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                )}>
+                  {config.description}
+                </CardDescription>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center space-x-2 flex-shrink-0">
+          <div className={cn(
+            "flex items-center space-x-2 flex-shrink-0",
+            "sticky right-0 bg-background pl-2",
+            isDarkMode ? "bg-gray-900" : "bg-white"
+          )}>
             <Button
               variant="ghost"
               size="icon"
@@ -370,76 +379,68 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
           "bg-background relative",
           isEmbed ? "pb-2" : "pb-4"
         )}>
-          {/* Fixed content first (no scroll) */}
-          <div className="mb-4">
-            <HeatmapGrid
-              data={filteredData}
-              colorTheme={config.color_theme as ColorTheme}
-              weekStart={config.week_start}
-              isDarkMode={isDarkMode}
-            />
-          </div>
-
-          {/* Insights before scroll area */}
-          {config.insights && (
-            <div className={cn(
-              "grid grid-cols-2 sm:grid-cols-4 gap-4 mb-3",
-              isDarkMode ? "text-gray-300" : "text-gray-900"
-            )}>
-              <div className="space-y-1">
-                <p className={cn(
-                  "text-sm font-medium",
-                  isDarkMode ? "text-gray-400" : "text-gray-600"
-                )}>
-                  Average Time
-                </p>
-                <p className="text-2xl font-bold">
-                  {formatDuration(stats.averageTime)}
-                </p>
-              </div>
-              {config.insights.totalDays && (
-                <div>
-                  <p className={cn(
-                    "text-sm font-medium",
-                    isDarkMode ? "text-gray-400" : "text-gray-600"
-                  )}>
-                    Total Days
-                  </p>
-                  <p className="text-2xl font-bold">{stats.totalDays}</p>
-                </div>
-              )}
-              {config.insights.totalTime && (
-                <div>
-                  <p className={cn(
-                    "text-sm font-medium",
-                    isDarkMode ? "text-gray-400" : "text-gray-600"
-                  )}>
-                    Total Time
-                  </p>
-                  <p className="text-2xl font-bold">{formatDuration(stats.totalTime)}</p>
-                </div>
-              )}
-              {config.insights.standardDeviation && (
-                <div>
-                  <p className={cn(
-                    "text-sm font-medium",
-                    isDarkMode ? "text-gray-400" : "text-gray-600"
-                  )}>
-                    Std Dev
-                  </p>
-                  <p className="text-2xl font-bold">{formatDuration(stats.standardDeviation)}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Scrollable container at the bottom */}
           <div className="overflow-x-auto">
-            <div className={cn(
-              "min-w-[800px]",
-              "pt-2"
-            )}>
-              {/* Empty div for scroll space */}
+            <div className="min-w-[800px]">
+              <div className="mb-4">
+                <HeatmapGrid
+                  data={filteredData}
+                  colorTheme={config.color_theme as ColorTheme}
+                  weekStart={config.week_start}
+                  isDarkMode={isDarkMode}
+                />
+              </div>
+
+              {config.insights && (
+                <div className={cn(
+                  "grid grid-cols-2 sm:grid-cols-4 gap-4 mb-1",
+                  isDarkMode ? "text-gray-300" : "text-gray-900"
+                )}>
+                  <div className="space-y-1">
+                    <p className={cn(
+                      "text-sm font-medium",
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    )}>
+                      Average Time
+                    </p>
+                    <p className="text-2xl font-bold">
+                      {formatDuration(stats.averageTime)}
+                    </p>
+                  </div>
+                  {config.insights.totalDays && (
+                    <div>
+                      <p className={cn(
+                        "text-sm font-medium",
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      )}>
+                        Total Days
+                      </p>
+                      <p className="text-2xl font-bold">{stats.totalDays}</p>
+                    </div>
+                  )}
+                  {config.insights.totalTime && (
+                    <div>
+                      <p className={cn(
+                        "text-sm font-medium",
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      )}>
+                        Total Time
+                      </p>
+                      <p className="text-2xl font-bold">{formatDuration(stats.totalTime)}</p>
+                    </div>
+                  )}
+                  {config.insights.standardDeviation && (
+                    <div>
+                      <p className={cn(
+                        "text-sm font-medium",
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      )}>
+                        Std Dev
+                      </p>
+                      <p className="text-2xl font-bold">{formatDuration(stats.standardDeviation)}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
