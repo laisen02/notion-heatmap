@@ -28,24 +28,35 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    toast.loading('Authenticating...')
 
     try {
       const supabase = createClientComponentClient()
       
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        })
+        // First check if email exists
+        const { data: existingUser } = await supabase
+          .from('auth.users')
+          .select('email')
+          .eq('email', email)
+          .single()
 
-        if (error?.message.includes('already registered')) {
+        if (existingUser) {
           toast.error('Email already registered. Please sign in instead.')
           setIsSignUp(false)
+          setIsLoading(false)
           return
         }
 
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        })
+
         if (error) throw error
+        
         toast.success('Check your email to confirm your account')
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -60,7 +71,13 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
         toast.success('Successfully signed in')
       }
     } catch (error: any) {
-      toast.error(error.message)
+      // Check for specific error messages
+      if (error.message?.includes('already registered')) {
+        toast.error('Email already registered. Please sign in instead.')
+        setIsSignUp(false)
+      } else {
+        toast.error(error.message)
+      }
     } finally {
       setIsLoading(false)
     }
@@ -82,6 +99,28 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
     } catch (error: any) {
       console.error("OAuth error:", error)
       toast.error(error.message || "Failed to sign in with Google")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      toast.error("Please enter your email address")
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const supabase = createClientComponentClient()
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      })
+
+      if (error) throw error
+      toast.success("Check your email for the password reset link")
+    } catch (error: any) {
+      toast.error(error.message)
     } finally {
       setIsLoading(false)
     }
@@ -112,6 +151,16 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
           )}
         </Button>
       </form>
+      {!isSignUp && (
+        <Button
+          variant="link"
+          className="px-0 font-normal"
+          onClick={handleResetPassword}
+          disabled={isLoading}
+        >
+          Forgot password?
+        </Button>
+      )}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
