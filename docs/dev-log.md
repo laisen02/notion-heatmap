@@ -440,20 +440,7 @@ update and complete the edit heatmap button function, whenever user click the ed
 show loading or creating or logging in whenever it take some time to navigate to another page. I noticed most of the time those success notification pop out too fast, but page still havet navigate. example after log in success, I already see log in success but nothing happen, i confuse what is going on, and only wait sometime then only it take me to the dashboard. whenever you want to show success notification, make sure it done the step and no waiting for user. you can show success at the same time when You navagate to the next page, then no confussion, just show loading or processing before, in the wait time. same with create new heatmap. the successful create new heatmap show only be show at the time when successful navigate user back to dashboard, just show creating heatmap or anythings when you need some time to process and navigate.
 
 
-
-I have a logo, where should I put it in and add on place?
-
-
-
-
-
-
-I want to create a browser tab management browser extension
-
-It store all user tab url info in their computer in free plan mode.
-If they want sync feature, they will have to go with paid plan, and only then we store their info on supabase 
-
-## 2024-03-20
+## 2024-02-09
 
 ### Authentication Improvements
 1. Added password reset functionality:
@@ -541,3 +528,43 @@ If they want sync feature, they will have to go with paid plan, and only then we
    - Enhance error recovery
    - Add offline support
    - Improve type safety
+
+## 2024-02-17
+
+### UI/UX Improvements
+
+1. Landing Page Enhancements:
+   - Updated hero section title and description for better clarity
+   - Added max-width constraint to hero text for improved readability
+   - Improved text content:
+     - New title: "Create Beautiful Heatmap With Your Notion Database"
+     - Updated description to be more concise and clear
+
+2. Branding and Identity:
+   - Added custom logo implementation:
+     - Set up logo in site header
+     - Implemented dark mode logo support
+     - Added logo as favicon across the site
+   - Updated favicon and web manifest configuration:
+     - Created site.webmanifest for PWA support
+     - Set up proper icon metadata in layout.tsx
+     - Added explicit favicon link tags
+
+3. Visual Improvements:
+   - Adjusted flickering grid background:
+     - Increased cell size to 32px
+     - Reduced gap to 1px
+     - Updated color to be more subtle (#9CA3AF)
+     - Adjusted opacity for better text readability
+
+4. Technical Updates:
+   - Improved metadata configuration in app layout
+   - Enhanced dark mode support for branding elements
+   - Added proper icon configuration for various devices and platforms
+   - Implemented PWA manifest file
+
+### Next Steps
+1. Consider adding more responsive design improvements
+2. Optimize logo loading for different screen sizes
+3. Further enhance dark mode support
+4. Consider adding animation transitions for logo/branding elements

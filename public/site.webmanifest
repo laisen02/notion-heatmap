@@ -1,0 +1,13 @@
+{
+  "name": "Notion Heatmap",
+  "short_name": "Notion Heatmap",
+  "icons": [
+    {
+      "src": "/images/notion-heatmap-logo.png",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "standalone"
+} 

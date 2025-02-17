@@ -24,13 +24,13 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="py-20 sm:py-32 bg-muted/50">
+    <section id="features" className="py-20 sm:py-32 bg-muted/50 dark:bg-muted/10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl dark:text-gray-100">
             Everything you need to track your habits
           </h2>
-          <p className="mt-6 text-lg leading-8 text-muted-foreground">
+          <p className="mt-6 text-lg leading-8 text-muted-foreground dark:text-gray-300">
             Transform your Notion habit tracking into beautiful visualizations
           </p>
         </div>
@@ -45,13 +45,13 @@ export function FeaturesSection() {
                 transition={{ duration: 0.5 }}
                 className="relative pl-16"
               >
-                <dt className="text-base font-semibold leading-7">
-                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+                <dt className="text-base font-semibold leading-7 dark:text-gray-100">
+                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-primary dark:bg-primary/90">
                     <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
                   </div>
                   {feature.name}
                 </dt>
-                <dd className="mt-2 text-base leading-7 text-muted-foreground">
+                <dd className="mt-2 text-base leading-7 text-muted-foreground dark:text-gray-400">
                   {feature.description}
                 </dd>
               </motion.div>
