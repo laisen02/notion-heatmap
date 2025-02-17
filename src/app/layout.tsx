@@ -12,8 +12,37 @@ import { Metadata } from 'next'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Notion Heatmap',
-  description: 'Create beautiful heatmaps with your Notion database',
+  title: {
+    default: 'Notion Heatmap - Visualize Your Habits',
+    template: '%s | Notion Heatmap'
+  },
+  description: 'Create beautiful heatmaps with your Notion database. Track habits, visualize progress, and gain insights from your data.',
+  keywords: ['notion', 'heatmap', 'habit tracking', 'data visualization', 'productivity'],
+  authors: [{ name: 'Your Name' }],
+  creator: 'Your Name/Company',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://notionheatmap.com',
+    title: 'Notion Heatmap - Visualize Your Habits',
+    description: 'Create beautiful heatmaps with your Notion database',
+    siteName: 'Notion Heatmap',
+    images: [{
+      url: '/images/og-image.png',
+      width: 1200,
+      height: 630,
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Notion Heatmap - Visualize Your Habits',
+    description: 'Create beautiful heatmaps with your Notion database',
+    images: ['/images/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: [
       {
@@ -105,14 +134,14 @@ export default async function RootLayout({
               closeButton
               toastOptions={{
                 duration: 5000,
-                className: "!bg-background !text-foreground border border-border",
+                className: "fixed !bg-background !text-foreground border border-border",
                 style: {
                   marginTop: '4rem',
+                  zIndex: 9999,
+                  position: 'fixed',
                   background: 'var(--background)',
                   color: 'var(--foreground)',
                   border: '1px solid var(--border)',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
                 },
               }}
             />

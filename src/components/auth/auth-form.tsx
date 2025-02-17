@@ -163,34 +163,14 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
     try {
       const supabase = createClientComponentClient()
       
-      // Use resetPasswordForEmail instead of signInWithOtp
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
+        redirectTo: `${window.location.origin}/auth/reset-password`,
       })
 
       if (error) throw error
-
-      toast.success("Password reset link sent to your email", {
-        position: "top-center",
-        style: {
-          marginTop: '4rem',
-          background: 'var(--background)',
-          color: 'var(--foreground)',
-          border: '1px solid var(--border)',
-        },
-        duration: 5000,
-      })
+      toast.success("Password reset link sent to your email")
     } catch (error: any) {
-      toast.error(error.message, {
-        position: "top-center",
-        style: {
-          marginTop: '4rem',
-          background: 'var(--background)',
-          color: 'var(--foreground)',
-          border: '1px solid var(--border)',
-        },
-        duration: 5000,
-      })
+      toast.error(error.message)
     } finally {
       setIsLoading(false)
     }
