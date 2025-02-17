@@ -163,15 +163,12 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
     try {
       const supabase = createClientComponentClient()
       
-      // First check if email exists
-      const { data, error: checkError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/reset-password`,
-        },
+      // Use resetPasswordForEmail instead of signInWithOtp
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
       })
 
-      if (checkError) throw checkError
+      if (error) throw error
 
       toast.success("Password reset link sent to your email", {
         position: "top-center",
