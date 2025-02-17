@@ -100,14 +100,20 @@ export default async function RootLayout({
             </div>
             <Toaster
               position="top-center"
+              expand={false}
+              richColors
+              closeButton
               toastOptions={{
                 duration: 5000,
+                className: "!bg-background !text-foreground border border-border",
                 style: {
+                  marginTop: '4rem',
                   background: 'var(--background)',
                   color: 'var(--foreground)',
                   border: '1px solid var(--border)',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
                 },
-                className: 'text-sm font-medium',
               }}
             />
           </ThemeProvider>

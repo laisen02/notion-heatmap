@@ -44,8 +44,14 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
 
         if (data?.user?.identities?.length === 0) {
           toast.error('Email already registered. Please sign in instead.', {
+            position: "top-center",
+            style: {
+              marginTop: '4rem',
+              background: 'var(--background)',
+              color: 'var(--foreground)',
+              border: '1px solid var(--border)',
+            },
             duration: 5000,
-            position: 'top-center',
           })
           setIsSignUp(false)
           setIsLoading(false)
@@ -55,8 +61,14 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
         if (checkError) throw checkError
         
         toast.success('Check your email to confirm your account', {
+          position: "top-center",
+          style: {
+            marginTop: '4rem',
+            background: 'var(--background)',
+            color: 'var(--foreground)',
+            border: '1px solid var(--border)',
+          },
           duration: 5000,
-          position: 'top-center',
         })
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -66,14 +78,36 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
 
         if (error) throw error
 
-        toast.loading('Preparing your dashboard...')
+        toast.loading('Preparing your dashboard...', {
+          position: "top-center",
+          style: {
+            marginTop: '4rem',
+            background: 'var(--background)',
+            color: 'var(--foreground)',
+            border: '1px solid var(--border)',
+          },
+        })
         await router.push('/dashboard')
-        toast.success('Successfully signed in')
+        toast.success('Successfully signed in', {
+          position: "top-center",
+          style: {
+            marginTop: '4rem',
+            background: 'var(--background)',
+            color: 'var(--foreground)',
+            border: '1px solid var(--border)',
+          },
+        })
       }
     } catch (error: any) {
       toast.error(error.message, {
+        position: "top-center",
+        style: {
+          marginTop: '4rem',
+          background: 'var(--background)',
+          color: 'var(--foreground)',
+          border: '1px solid var(--border)',
+        },
         duration: 5000,
-        position: 'top-center',
       })
     } finally {
       setIsLoading(false)
@@ -95,7 +129,16 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
       if (error) throw error
     } catch (error: any) {
       console.error("OAuth error:", error)
-      toast.error(error.message || "Failed to sign in with Google")
+      toast.error(error.message || "Failed to sign in with Google", {
+        position: "top-center",
+        style: {
+          marginTop: '4rem',
+          background: 'var(--background)',
+          color: 'var(--foreground)',
+          border: '1px solid var(--border)',
+        },
+        duration: 5000,
+      })
     } finally {
       setIsLoading(false)
     }
@@ -104,8 +147,14 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
   const handleResetPassword = async () => {
     if (!email) {
       toast.error("Please enter your email address", {
+        position: "top-center",
+        style: {
+          marginTop: '4rem',
+          background: 'var(--background)',
+          color: 'var(--foreground)',
+          border: '1px solid var(--border)',
+        },
         duration: 5000,
-        position: 'top-center',
       })
       return
     }
@@ -125,13 +174,25 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
       if (checkError) throw checkError
 
       toast.success("Password reset link sent to your email", {
+        position: "top-center",
+        style: {
+          marginTop: '4rem',
+          background: 'var(--background)',
+          color: 'var(--foreground)',
+          border: '1px solid var(--border)',
+        },
         duration: 5000,
-        position: 'top-center',
       })
     } catch (error: any) {
       toast.error(error.message, {
+        position: "top-center",
+        style: {
+          marginTop: '4rem',
+          background: 'var(--background)',
+          color: 'var(--foreground)',
+          border: '1px solid var(--border)',
+        },
         duration: 5000,
-        position: 'top-center',
       })
     } finally {
       setIsLoading(false)
