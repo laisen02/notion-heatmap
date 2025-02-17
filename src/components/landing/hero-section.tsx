@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { motion } from "framer-motion"
+import { motion, HTMLMotionProps } from "framer-motion"
 import { FlickeringGrid } from "@/components/ui/flickering-grid"
 import { HeatmapCard } from "@/components/heatmap/heatmap-card"
 import type { HeatmapConfig, HeatmapData } from "@/types/heatmap"
@@ -89,7 +89,8 @@ export function HeroSection() {
 
       {/* Content */}
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <motion.div 
+        <motion.div
+          as="div"
           className="text-center relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -118,7 +119,8 @@ export function HeroSection() {
 
           {/* Demo Heatmap */}
           {mounted && (
-            <motion.div 
+            <motion.div
+              as="div"
               className="mt-16"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
