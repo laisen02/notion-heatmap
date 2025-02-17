@@ -132,6 +132,7 @@ export default async function RootLayout({
               expand={false}
               richColors
               closeButton
+              visibleToasts={6}
               toastOptions={{
                 duration: 5000,
                 className: "fixed !bg-background !text-foreground border border-border",
@@ -142,6 +143,8 @@ export default async function RootLayout({
                   background: 'var(--background)',
                   color: 'var(--foreground)',
                   border: '1px solid var(--border)',
+                  width: 'auto',
+                  maxWidth: '420px',
                 },
               }}
             />
