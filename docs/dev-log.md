@@ -7,7 +7,7 @@ there is sometime duplicate nav bar appear on dashboard. make sure the nav bar f
  
 
 
-update and complete the edit heatmap button function, whenever user click the edit heatmap, it should land on a page that look almost the same with the create new heatmap page, the only different is those input column will be filled with the selected heatmap info that stored in supabase to show here, for user to edit and update them. after edit and click the update button, those info should be update to supabase database and the heatmap info will be changes and update to the newest info set by user. 
+
 
 update and complete the edit heatmap button function, whenever user click the edit heatmap, it should land on a page that look almost the same with the create new heatmap page, the only different is those input column will be filled with the selected heatmap info that stored in supabase to show here, for user to edit and update them. after edit and click the update button, those info should be update to supabase database and the heatmap info will be changes and update to the newest info set by user. 
 
@@ -612,3 +612,59 @@ Note: This log will be updated as development progresses. Each update will inclu
    - Implement data backup options
    - Add more visualization types
    - Enhance mobile touch interactions
+
+## Latest Updates
+
+### 2024-02-17
+- Fixed Supabase real-time subscription in dashboard
+- Improved heatmap update functionality
+- Removed unnecessary data verification steps
+- Added proper error handling for database operations
+- Fixed session handling in real-time updates
+- Removed caching logic in favor of real-time updates
+- Fixed type issues with HeatmapCard data prop
+
+### Key Changes
+1. Dashboard Page:
+   - Implemented proper async session handling
+   - Added cleanup for Supabase channel subscriptions
+   - Fixed real-time update filtering by user_id
+   - Improved loading state management
+
+2. Heatmap Form:
+   - Simplified update operation
+   - Removed redundant data verification
+   - Improved error handling
+   - Fixed navigation after updates
+   - Removed unnecessary console logs
+
+3. Database:
+   - Ensured RLS policies are properly configured
+   - Added proper user_id filtering for security
+
+### Known Issues
+- TypeScript errors in hero-section.tsx need to be addressed
+- Need to implement proper error boundaries
+- Consider adding retry logic for failed operations
+
+### Next Steps
+1. Fix remaining TypeScript issues
+2. Implement proper error boundaries
+3. Add loading states for all async operations
+4. Improve user feedback during operations
+5. Add proper data validation
+6. Consider implementing offline support
+
+### Technical Debt
+- Need to clean up console logs
+- Consider implementing proper state management
+- Review and optimize database queries
+- Add comprehensive error handling
+- Implement proper testing
+
+### Security Considerations
+- Ensure proper RLS policies
+- Validate user permissions
+- Sanitize user inputs
+- Implement rate limiting
+- Add proper audit logging
