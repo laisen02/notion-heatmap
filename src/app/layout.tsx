@@ -13,17 +13,33 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Notion Heatmap',
-  description: 'Visualize your Notion habits with beautiful heatmaps',
+  description: 'Create beautiful heatmaps with your Notion database',
   icons: {
     icon: [
-      { url: '/images/notion-heatmap-logo.png' },
+      {
+        url: '/images/notion-heatmap-logo.png',
+        sizes: 'any',
+      }
+    ],
+    shortcut: [
+      {
+        url: '/images/notion-heatmap-logo.png',
+        sizes: 'any',
+      }
     ],
     apple: [
-      { url: '/images/notion-heatmap-logo.png' },
+      {
+        url: '/images/notion-heatmap-logo.png',
+        sizes: 'any',
+      }
     ],
-    shortcut: [{ url: '/images/notion-heatmap-logo.png' }],
   },
-  manifest: '/site.webmanifest'
+  manifest: '/site.webmanifest',
+  other: {
+    'msapplication-TileColor': '#ffffff',
+    'theme-color': '#ffffff',
+    'cache-control': 'public, max-age=31536000, immutable',
+  },
 }
 
 export default async function RootLayout({
@@ -58,7 +74,20 @@ export default async function RootLayout({
     return (
       <html lang="en" suppressHydrationWarning>
         <head>
-          <link rel="icon" href="/images/notion-heatmap-logo.png" />
+          <link 
+            rel="icon" 
+            href="/images/notion-heatmap-logo.png"
+            type="image/png"
+          />
+          <link 
+            rel="shortcut icon" 
+            href="/images/notion-heatmap-logo.png"
+            type="image/png"
+          />
+          <link 
+            rel="apple-touch-icon" 
+            href="/images/notion-heatmap-logo.png"
+          />
         </head>
         <body className={cn(
           inter.className,
@@ -90,7 +119,20 @@ export default async function RootLayout({
     return (
       <html lang="en" suppressHydrationWarning>
         <head>
-          <link rel="icon" href="/images/notion-heatmap-logo.png" />
+          <link 
+            rel="icon" 
+            href="/images/notion-heatmap-logo.png"
+            type="image/png"
+          />
+          <link 
+            rel="shortcut icon" 
+            href="/images/notion-heatmap-logo.png"
+            type="image/png"
+          />
+          <link 
+            rel="apple-touch-icon" 
+            href="/images/notion-heatmap-logo.png"
+          />
         </head>
         <body className={cn(
           inter.className,

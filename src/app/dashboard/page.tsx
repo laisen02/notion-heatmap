@@ -1,114 +1,93 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+"use client"
+
+import { useState, useEffect, useCallback } from "react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { HeatmapCard } from "@/components/heatmap/heatmap-card"
+import { Loading } from "@/components/ui/loading"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { redirect } from "next/navigation"
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+// Cache duration in milliseconds (e.g., 5 minutes)
+const CACHE_DURATION = 5 * 60 * 1000
 
-export default async function DashboardPage() {
-  const cookieStore = cookies()
-  const supabase = createServerComponentClient({ cookies: () => cookieStore })
+export default function DashboardPage() {
+  const router = useRouter()
+  const [heatmaps, setHeatmaps] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0)
 
-  try {
-    // Check session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
-    if (sessionError) {
-      console.error('Session error:', sessionError)
-      throw new Error('Failed to get session')
+  const fetchHeatmaps = useCallback(async (force = false) => {
+    // Check if cache is still valid
+    const now = Date.now()
+    if (!force && lastFetchTime && (now - lastFetchTime) < CACHE_DURATION) {
+      return // Use cached data
     }
 
-    if (!session) {
-      redirect('/auth')
+    setIsLoading(true)
+    try {
+      const supabase = createClientComponentClient()
+      
+      // Check session
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        router.push('/auth')
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('heatmaps')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      setHeatmaps(data || [])
+      setLastFetchTime(now)
+    } catch (error: any) {
+      toast.error('Failed to load heatmaps')
+      console.error('Error:', error)
+    } finally {
+      setIsLoading(false)
     }
+  }, [router, lastFetchTime])
 
-    // Get user's heatmaps
-    const { data: heatmaps, error: heatmapsError } = await supabase
-      .from('heatmaps')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .order('display_order', { ascending: true })
+  useEffect(() => {
+    fetchHeatmaps()
+  }, [fetchHeatmaps])
 
-    if (heatmapsError) {
-      console.error('Error fetching heatmaps:', heatmapsError)
-      throw new Error('Failed to load heatmaps')
-    }
+  // Manual refresh function
+  const handleRefresh = () => {
+    fetchHeatmaps(true) // Force refresh
+  }
 
-    if (!heatmaps) {
-      throw new Error('No heatmaps found')
-    }
-
-    // Fetch initial data for each heatmap
-    const heatmapsWithData = await Promise.all(
-      heatmaps.map(async (heatmap) => {
-        try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notion/data`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ heatmapId: heatmap.id }),
-          })
-          const { data } = await response.json()
-          return { ...heatmap, initialData: data }
-        } catch (error) {
-          console.error('Error fetching initial data:', error)
-          return { ...heatmap, initialData: [] }
-        }
-      })
-    )
-
-    // Show empty state if no heatmaps
-    if (heatmaps.length === 0) {
-      return (
-        <div className="container py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Welcome to Notion Heatmap!</h1>
-            <p className="text-muted-foreground mb-4">Get started by creating your first heatmap.</p>
-            <Link href="/create">
-              <Button>Create Your First Heatmap</Button>
-            </Link>
-          </div>
-        </div>
-      )
-    }
-
-    // Show heatmaps grid
+  if (isLoading && !heatmaps.length) {
     return (
       <div className="container py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Your Heatmaps</h1>
-          <Link href="/create">
-            <Button>Create New Heatmap</Button>
-          </Link>
-        </div>
-        <div className="flex flex-col space-y-6">
-          {heatmapsWithData.map((heatmap) => (
-            <HeatmapCard 
-              key={heatmap.id}
-              config={heatmap}
-              data={heatmap.initialData}
-              isEmbed={false}
-            />
-          ))}
-        </div>
-      </div>
-    )
-  } catch (error) {
-    console.error('Dashboard error:', error)
-    return (
-      <div className="container py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Something went wrong</h1>
-          <p className="text-muted-foreground mb-4">
-            {error instanceof Error ? error.message : 'Please try refreshing the page'}
-          </p>
-          <Link href="/dashboard">
-            <Button>Try Again</Button>
-          </Link>
-        </div>
+        <Loading text="Loading your heatmaps..." />
       </div>
     )
   }
+
+  return (
+    <div className="container py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Your Heatmaps</h1>
+        <Link href="/create">
+          <Button>Create New Heatmap</Button>
+        </Link>
+      </div>
+      <div className="flex flex-col space-y-6">
+        {heatmaps.map((heatmap) => (
+          <HeatmapCard 
+            key={heatmap.id}
+            config={heatmap}
+            data={heatmap.initialData}
+            isEmbed={false}
+          />
+        ))}
+      </div>
+    </div>
+  )
 } 
