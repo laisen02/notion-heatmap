@@ -62,5 +62,10 @@ export const config = {
      * - public files with extensions
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/dashboard/:path*',
+    '/create/:path*',
+    '/edit/:path*',
+    '/settings/:path*',
+    '/profile/:path*',
   ],
 } 

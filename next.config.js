@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-module.exports = {
+const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -12,7 +12,8 @@ module.exports = {
   experimental: {
     serverActions: {
       allowedOrigins: ['localhost:3000', 'notionheatmap.com']
-    }
+    },
+    esmExternals: 'loose',
   },
   async headers() {
     return [
@@ -43,4 +44,7 @@ module.exports = {
       }
     ]
   },
-} 
+  transpilePackages: ['sonner'],
+}
+
+module.exports = nextConfig 

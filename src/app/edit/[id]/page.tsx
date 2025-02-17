@@ -1,42 +1,60 @@
-import { redirect } from "next/navigation"
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+"use client"
 
-export default async function EditHeatmapPage({
-  params,
-}: {
-  params: { id: string }
-}) {
-  // Don't allow editing demo heatmap
-  if (params.id === 'demo') {
-    redirect('/')
+import { useEffect, useState, use } from "react"
+import { useRouter } from "next/navigation"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { toast } from "sonner"
+import { HeatmapForm } from "@/components/heatmap/heatmap-form"
+import { Loading } from "@/components/ui/loading"
+import type { HeatmapConfig } from "@/types/heatmap"
+
+export default function EditHeatmapPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params)
+  const [config, setConfig] = useState<HeatmapConfig | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+  const supabase = createClientComponentClient()
+
+  useEffect(() => {
+    const fetchHeatmap = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('heatmaps')
+          .select('*')
+          .eq('id', resolvedParams.id)
+          .single()
+
+        if (error) throw error
+        if (!data) throw new Error('Heatmap not found')
+
+        setConfig(data)
+      } catch (error: any) {
+        console.error('Error fetching heatmap:', error)
+        toast.error('Failed to load heatmap')
+        router.push('/dashboard')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchHeatmap()
+  }, [resolvedParams.id, router, supabase])
+
+  if (isLoading) {
+    return <Loading text="Loading heatmap..." />
   }
 
-  const supabase = createServerComponentClient({ cookies })
-  const { data: { session } } = await supabase.auth.getSession()
-
-  if (!session) {
-    redirect('/auth')
+  if (!config) {
+    return null
   }
 
   return (
-    <div className="container py-8">
-      <div className="mx-auto max-w-2xl">
-        <h1 className="text-3xl font-bold">Edit Heatmap</h1>
-        <p className="mt-2 text-muted-foreground">
-          Edit your heatmap settings and preferences.
-        </p>
-        
-        <div className="mt-4 text-sm text-muted-foreground">
-          Editing heatmap ID: {params.id}
-        </div>
-        
-        <div className="mt-8 rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">
-            Edit form will be implemented here with pre-filled data based on the heatmap ID.
-          </p>
-        </div>
-      </div>
+    <div className="container max-w-2xl mx-auto py-10">
+      <h1 className="text-2xl font-bold mb-6">Edit Heatmap</h1>
+      <HeatmapForm 
+        initialData={config}
+        mode="edit"
+      />
     </div>
   )
 } 

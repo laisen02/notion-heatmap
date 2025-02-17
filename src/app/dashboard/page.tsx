@@ -8,6 +8,7 @@ import { HeatmapCard } from "@/components/heatmap/heatmap-card"
 import { Loading } from "@/components/ui/loading"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import type { HeatmapConfig } from "@/types/heatmap"
 
 // Cache duration in milliseconds (e.g., 5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000
@@ -20,27 +21,12 @@ const heatmapCache = {
 
 export default function DashboardPage() {
   const router = useRouter()
-  const [heatmaps, setHeatmaps] = useState<any[]>(() => heatmapCache.data || [])
-  const [isLoading, setIsLoading] = useState(!heatmapCache.data)
-  const [isBackgroundUpdate, setIsBackgroundUpdate] = useState(false)
+  const [heatmaps, setHeatmaps] = useState<HeatmapConfig[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const supabase = createClientComponentClient()
 
-  const fetchHeatmaps = useCallback(async (background = false) => {
-    // Check if cache is still valid
-    const now = Date.now()
-    if (!background && heatmapCache.data && (now - heatmapCache.lastFetch) < CACHE_DURATION) {
-      return // Use cached data
-    }
-
-    if (!background) {
-      setIsLoading(true)
-    } else {
-      setIsBackgroundUpdate(true)
-    }
-
+  const fetchHeatmaps = useCallback(async () => {
     try {
-      const supabase = createClientComponentClient()
-      
-      // Check session
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         router.push('/auth')
@@ -50,73 +36,61 @@ export default function DashboardPage() {
       const { data, error } = await supabase
         .from('heatmaps')
         .select('*')
-        .order('created_at', { ascending: false })
+        .eq('user_id', session.user.id)
+        .order('updated_at', { ascending: false })
 
       if (error) throw error
 
-      // Update cache
-      heatmapCache.data = data
-      heatmapCache.lastFetch = now
-
+      console.log('Fetched heatmaps:', data)
       setHeatmaps(data || [])
     } catch (error: any) {
-      if (!background) {
-        toast.error('Failed to load heatmaps')
-      }
-      console.error('Error:', error)
+      console.error('Error fetching heatmaps:', error)
+      toast.error('Failed to load heatmaps')
     } finally {
       setIsLoading(false)
-      setIsBackgroundUpdate(false)
     }
-  }, [router])
+  }, [router, supabase])
 
-  // Initial load - use cache or fetch
+  // Initial fetch
   useEffect(() => {
-    if (heatmapCache.data) {
-      // If we have cached data, show it immediately and update in background
-      setHeatmaps(heatmapCache.data)
-      fetchHeatmaps(true) // Background update
-    } else {
-      // First load - fetch normally
-      fetchHeatmaps(false)
-    }
+    fetchHeatmaps()
   }, [fetchHeatmaps])
 
-  // Subscribe to real-time updates
+  // Subscribe to changes
   useEffect(() => {
-    const supabase = createClientComponentClient()
-    
-    const subscription = supabase
-      .channel('heatmaps_changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'heatmaps' 
-        }, 
-        () => {
-          // When data changes, update in background
-          fetchHeatmaps(true)
-        }
-      )
-      .subscribe()
+    let channel: ReturnType<typeof supabase.channel>
+
+    const setupSubscription = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+
+      channel = supabase
+        .channel('heatmaps_changes')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'heatmaps',
+            filter: `user_id=eq.${session.user.id}`
+          }, 
+          () => {
+            fetchHeatmaps()
+          }
+        )
+        .subscribe()
+    }
+
+    setupSubscription()
 
     return () => {
-      subscription.unsubscribe()
+      if (channel) {
+        channel.unsubscribe()
+      }
     }
-  }, [fetchHeatmaps])
+  }, [supabase, fetchHeatmaps])
 
-  // Manual refresh function
-  const handleRefresh = () => {
-    fetchHeatmaps(false) // Force refresh
-  }
-
-  if (isLoading && !heatmaps.length) {
-    return (
-      <div className="container py-8">
-        <Loading text="Loading your heatmaps..." />
-      </div>
-    )
+  if (isLoading) {
+    return <Loading text="Loading heatmaps..." />
   }
 
   return (
@@ -124,12 +98,7 @@ export default function DashboardPage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Your Heatmaps</h1>
         <div className="flex items-center gap-4">
-          {isBackgroundUpdate && (
-            <span className="text-sm text-muted-foreground">
-              Updating...
-            </span>
-          )}
-          <Button onClick={handleRefresh} disabled={isLoading}>
+          <Button onClick={fetchHeatmaps} disabled={isLoading}>
             Refresh
           </Button>
           <Link href="/create">
@@ -137,13 +106,14 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
       <div className="flex flex-col space-y-6">
         {heatmaps.map((heatmap) => (
           <HeatmapCard 
             key={heatmap.id}
             config={heatmap}
-            data={heatmap.initialData}
-            isEmbed={false}
+            showControls={true}
+            data={[]} // Add empty data array to satisfy type
           />
         ))}
       </div>
