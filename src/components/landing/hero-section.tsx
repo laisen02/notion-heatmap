@@ -7,69 +7,31 @@ import { FlickeringGrid } from "@/components/ui/flickering-grid"
 import { HeatmapCard } from "@/components/heatmap/heatmap-card"
 import type { HeatmapConfig, HeatmapData } from "@/types/heatmap"
 import { useState, useEffect } from "react"
+import { toast } from "sonner"
+import { generateDemoData, getDemoConfig } from "@/lib/demo-data"
 
 export function HeroSection() {
   const [mounted, setMounted] = useState(false)
   const [demoData, setDemoData] = useState<HeatmapData[]>([])
+  const [embedCode, setEmbedCode] = useState('')
 
   useEffect(() => {
-    // Generate data only on client side
-    const generateDemoData = () => {
-      const data: HeatmapData[] = []
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      
-      const seededRandom = (seed: number) => {
-        const x = Math.sin(seed++) * 10000
-        return x - Math.floor(x)
-      }
-      
-      for (let i = 365; i >= 0; i--) {
-        const date = new Date(today)
-        date.setDate(date.getDate() - i)
-        const dateStr = date.toISOString().split('T')[0]
-        
-        const seed = parseInt(dateStr.replace(/-/g, ''))
-        // Generate more realistic reading time values (between 0 and 3 hours)
-        const value = seededRandom(seed) * 3
-        
-        // Add some zero values to make it more realistic (weekends or missed days)
-        const isZero = seededRandom(seed + 1) > 0.7
-        
-        data.push({
-          date: dateStr,
-          value: isZero ? 0 : Number(value.toFixed(1))
-        })
-      }
-      
-      return data
-    }
-
     setDemoData(generateDemoData())
+    setEmbedCode(`<iframe
+  src="${window.location.origin}/embed/demo"
+  width="100%"
+  height="400"
+  frameBorder="0"
+  style="border-radius: 8px; background: transparent;"
+></iframe>`)
     setMounted(true)
   }, [])
 
-  const demoConfig: HeatmapConfig = {
-    id: "demo",
-    name: "Reading Habits",
-    description: "Track daily reading progress",
-    notion_api_key: "",
-    database_id: "",
-    date_column: "",
-    time_column: "",
-    property_column: "",
-    activity_column: "",
-    color_theme: "green",
-    week_start: "monday",
-    is_public: true,
-    insights: {
-      averageTime: true,
-      totalDays: true,
-      totalTime: true,
-      standardDeviation: false
-    },
-    display_order: 0,
-    isDemo: true
+  const demoConfig = getDemoConfig()
+
+  // Don't render anything until client-side
+  if (!mounted) {
+    return null
   }
 
   return (
@@ -116,31 +78,53 @@ export function HeroSection() {
           </div>
 
           {/* Demo Heatmap */}
-          {mounted && (
-            <motion.div 
-              className="mt-16"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <div className="rounded-2xl bg-background/80 p-6 backdrop-blur-sm max-w-[1000px] mx-auto">
-                <HeatmapCard 
-                  config={{
-                    ...demoConfig,
-                    insights: {
-                      averageTime: true,
-                      totalDays: true,
-                      totalTime: true,
-                      standardDeviation: false
-                    }
-                  }}
-                  data={demoData}
-                  isEmbed={false}
-                  showControls={true}
-                />
+          <motion.div 
+            className="mt-16"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <div className="rounded-2xl bg-background/80 p-6 backdrop-blur-sm max-w-[1000px] mx-auto">
+              <HeatmapCard 
+                config={{
+                  ...demoConfig,
+                  insights: {
+                    averageTime: true,
+                    totalDays: true,
+                    totalTime: true,
+                    standardDeviation: false
+                  }
+                }}
+                data={demoData}
+                isEmbed={false}
+                showControls={true}
+              />
+
+              {/* Embed Code Section */}
+              <div className="mt-8 border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Embed in Notion</h3>
+                <div className="bg-muted p-4 rounded-lg">
+                  <pre className="text-sm overflow-x-auto whitespace-pre-wrap break-all">
+                    {embedCode}
+                  </pre>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => {
+                      navigator.clipboard.writeText(embedCode)
+                      toast.success('Embed code copied to clipboard')
+                    }}
+                  >
+                    Copy Embed Code
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Paste this code into a Notion embed block to display your heatmap
+                </p>
               </div>
-            </motion.div>
-          )}
+            </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>

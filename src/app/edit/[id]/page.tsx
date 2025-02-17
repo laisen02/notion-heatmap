@@ -1,10 +1,24 @@
-interface EditPageProps {
-  params: {
-    id: string
-  }
-}
+import { redirect } from "next/navigation"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
 
-export default function EditPage({ params }: EditPageProps) {
+export default async function EditHeatmapPage({
+  params,
+}: {
+  params: { id: string }
+}) {
+  // Don't allow editing demo heatmap
+  if (params.id === 'demo') {
+    redirect('/')
+  }
+
+  const supabase = createServerComponentClient({ cookies })
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session) {
+    redirect('/auth')
+  }
+
   return (
     <div className="container py-8">
       <div className="mx-auto max-w-2xl">

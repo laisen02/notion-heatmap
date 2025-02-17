@@ -1,6 +1,9 @@
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { EmbedContent } from "@/components/embed/embed-content"
+import { HeatmapCard } from "@/components/heatmap/heatmap-card"
+import type { HeatmapConfig, HeatmapData } from "@/types/heatmap"
+import { generateDemoData, getDemoConfig } from "@/lib/demo-data"
 
 // Metadata can stay in server component
 export const metadata = {
@@ -48,6 +51,20 @@ async function getHeatmapData(heatmapId: string) {
 }
 
 export default async function EmbedPage({ params }: { params: { id: string } }) {
+  // Special handling for demo embed
+  if (params.id === 'demo') {
+    return (
+      <div className="p-4">
+        <HeatmapCard
+          config={getDemoConfig()}
+          data={generateDemoData()}
+          isEmbed={true}
+          showControls={false}
+        />
+      </div>
+    )
+  }
+
   const supabase = createServerComponentClient({ cookies })
   
   const { data: config, error } = await supabase

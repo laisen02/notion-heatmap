@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Icons } from "@/components/ui/icons"
 import { toast } from "sonner"
 import Link from "next/link"
+import { Loading } from "@/components/ui/loading"
 
 interface AuthError {
   message: string
@@ -19,7 +20,6 @@ interface AuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function AuthForm({ className, ...props }: AuthFormProps) {
   const router = useRouter()
-  const supabase = createClientComponentClient()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isSignUp, setIsSignUp] = useState<boolean>(false)
   const [email, setEmail] = useState("")
@@ -30,6 +30,7 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
     setIsLoading(true)
 
     try {
+      const supabase = createClientComponentClient()
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({
           email,
@@ -47,8 +48,8 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
         })
         if (error) throw error
         
-        router.refresh()
-        router.push("/dashboard")
+        await router.push('/dashboard')
+        toast.success('Successfully logged in')
       }
     } catch (error: any) {
       console.error("Auth error:", error)
@@ -78,46 +79,24 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
 
   return (
     <div className="grid gap-6" {...props}>
-      <form onSubmit={handleSubmit}>
-        <div className="grid gap-4">
-          <div className="grid gap-1">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              placeholder="name@example.com"
-              type="email"
-              autoCapitalize="none"
-              autoComplete="email"
-              autoCorrect="off"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-              required
-            />
-          </div>
-          <div className="grid gap-1">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              name="password"
-              placeholder="••••••••"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-              required
-              minLength={6}
-            />
-          </div>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && (
-              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            {isSignUp ? "Sign Up" : "Sign In"}
-          </Button>
-        </div>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={isLoading}
+        />
+        <Input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={isLoading}
+        />
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? <Loading text="Signing in..." /> : "Sign In"}
+        </Button>
       </form>
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

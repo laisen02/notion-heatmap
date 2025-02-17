@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
@@ -7,23 +8,31 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Loading } from "@/components/ui/loading"
 
 export function MainNav() {
   const pathname = usePathname()
   const router = useRouter()
-  const supabase = createClientComponentClient()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handleSignOut = async () => {
+    setIsLoggingOut(true)
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      const supabase = createClientComponentClient()
       
-      // Clear any local storage/state if needed
-      router.push('/auth')
-      router.refresh()
+      // Show loading state
+      toast.loading('Signing out...')
+      
+      await supabase.auth.signOut()
+      
+      // Navigate first
+      await router.push('/')
+      // Then show success
+      toast.success('Signed out successfully')
     } catch (error) {
-      console.error('Error signing out:', error)
       toast.error('Failed to sign out')
+    } finally {
+      setIsLoggingOut(false)
     }
   }
 
@@ -38,8 +47,15 @@ export function MainNav() {
         </Link>
         <div className="flex items-center space-x-4">
           <ThemeToggle />
-          <Button variant="ghost" onClick={handleSignOut}>
-            Sign Out
+          <Button 
+            onClick={handleSignOut} 
+            disabled={isLoggingOut}
+          >
+            {isLoggingOut ? (
+              <Loading text="Signing out..." />
+            ) : (
+              "Sign Out"
+            )}
           </Button>
         </div>
       </div>
