@@ -28,6 +28,7 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    toast.loading('Authenticating...')
 
     try {
       const supabase = createClientComponentClient()
@@ -45,7 +46,6 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
         }
 
         if (error) throw error
-        
         toast.success('Check your email to confirm your account')
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -55,7 +55,7 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
 
         if (error) throw error
 
-        toast.loading('Signing in...')
+        toast.loading('Preparing your dashboard...')
         await router.push('/dashboard')
         toast.success('Successfully signed in')
       }
@@ -102,7 +102,11 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
           disabled={isLoading}
         />
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? <Loading text="Signing in..." /> : "Sign In"}
+          {isLoading ? (
+            <Loading text={isSignUp ? "Creating account..." : "Signing in..."} />
+          ) : (
+            isSignUp ? "Sign Up" : "Sign In"
+          )}
         </Button>
       </form>
       <div className="relative">
