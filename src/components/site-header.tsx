@@ -40,20 +40,28 @@ export function SiteHeader() {
     try {
       const supabase = createClientComponentClient()
       
-      // Show loading state
       toast.loading('Signing out...')
       
       // Sign out from Supabase
-      const { error } = await supabase.auth.signOut()
+      const { error } = await supabase.auth.signOut({
+        scope: 'global' // This ensures all sessions are cleared
+      })
       if (error) throw error
 
       // Clear session state
       setSession(null)
       
-      // Clear any cached data
-      localStorage.removeItem('supabase.auth.token')
+      // Clear all local storage
+      localStorage.clear()
       
-      // Force reload to clear all state
+      // Clear all cookies
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/")
+      })
+      
+      // Force a complete page reload and redirect
       window.location.href = '/'
       
       toast.success('Signed out successfully')
