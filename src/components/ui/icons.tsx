@@ -11,6 +11,7 @@ import {
   LucideProps,
   LucideIcon,
   Palette,
+  Menu,
 } from "lucide-react"
 
 export type Icon = LucideIcon
@@ -59,4 +60,5 @@ export const Icons = {
       <rect x="60" y="60" width="20" height="20" rx="4" fill="currentColor" className="opacity-60" />
     </svg>
   ),
+  menu: Menu,
 } as const 
