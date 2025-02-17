@@ -12,20 +12,31 @@ import Link from "next/link"
 // Cache duration in milliseconds (e.g., 5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000
 
+// Create a cache store
+const heatmapCache = {
+  data: null as any[] | null,
+  lastFetch: 0,
+}
+
 export default function DashboardPage() {
   const router = useRouter()
-  const [heatmaps, setHeatmaps] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [lastFetchTime, setLastFetchTime] = useState<number>(0)
+  const [heatmaps, setHeatmaps] = useState<any[]>(() => heatmapCache.data || [])
+  const [isLoading, setIsLoading] = useState(!heatmapCache.data)
+  const [isBackgroundUpdate, setIsBackgroundUpdate] = useState(false)
 
-  const fetchHeatmaps = useCallback(async (force = false) => {
+  const fetchHeatmaps = useCallback(async (background = false) => {
     // Check if cache is still valid
     const now = Date.now()
-    if (!force && lastFetchTime && (now - lastFetchTime) < CACHE_DURATION) {
+    if (!background && heatmapCache.data && (now - heatmapCache.lastFetch) < CACHE_DURATION) {
       return // Use cached data
     }
 
-    setIsLoading(true)
+    if (!background) {
+      setIsLoading(true)
+    } else {
+      setIsBackgroundUpdate(true)
+    }
+
     try {
       const supabase = createClientComponentClient()
       
@@ -43,23 +54,61 @@ export default function DashboardPage() {
 
       if (error) throw error
 
+      // Update cache
+      heatmapCache.data = data
+      heatmapCache.lastFetch = now
+
       setHeatmaps(data || [])
-      setLastFetchTime(now)
     } catch (error: any) {
-      toast.error('Failed to load heatmaps')
+      if (!background) {
+        toast.error('Failed to load heatmaps')
+      }
       console.error('Error:', error)
     } finally {
       setIsLoading(false)
+      setIsBackgroundUpdate(false)
     }
-  }, [router, lastFetchTime])
+  }, [router])
 
+  // Initial load - use cache or fetch
   useEffect(() => {
-    fetchHeatmaps()
+    if (heatmapCache.data) {
+      // If we have cached data, show it immediately and update in background
+      setHeatmaps(heatmapCache.data)
+      fetchHeatmaps(true) // Background update
+    } else {
+      // First load - fetch normally
+      fetchHeatmaps(false)
+    }
+  }, [fetchHeatmaps])
+
+  // Subscribe to real-time updates
+  useEffect(() => {
+    const supabase = createClientComponentClient()
+    
+    const subscription = supabase
+      .channel('heatmaps_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'heatmaps' 
+        }, 
+        () => {
+          // When data changes, update in background
+          fetchHeatmaps(true)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [fetchHeatmaps])
 
   // Manual refresh function
   const handleRefresh = () => {
-    fetchHeatmaps(true) // Force refresh
+    fetchHeatmaps(false) // Force refresh
   }
 
   if (isLoading && !heatmaps.length) {
@@ -74,9 +123,19 @@ export default function DashboardPage() {
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Your Heatmaps</h1>
-        <Link href="/create">
-          <Button>Create New Heatmap</Button>
-        </Link>
+        <div className="flex items-center gap-4">
+          {isBackgroundUpdate && (
+            <span className="text-sm text-muted-foreground">
+              Updating...
+            </span>
+          )}
+          <Button onClick={handleRefresh} disabled={isLoading}>
+            Refresh
+          </Button>
+          <Link href="/create">
+            <Button>Create New Heatmap</Button>
+          </Link>
+        </div>
       </div>
       <div className="flex flex-col space-y-6">
         {heatmaps.map((heatmap) => (

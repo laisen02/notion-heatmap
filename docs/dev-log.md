@@ -1,6 +1,19 @@
 # Development Log
 
 
+# task list
+there is sometime duplicate nav bar appear on dashboard. make sure the nav bar follow @ condition written here.  
+
+
+I just notice the reset password button on sign up login page disapapear, i dont see any reset password button
+
+
+sign up using esixting account still didnt show notification to user about the email is already been register and let them to sign in 
+
+update and complete the edit heatmap button function, whenever user click the edit heatmap, it should land on a page that look almost the same with the create new heatmap page, the only different is those input column will be filled with the selected heatmap info that stored in supabase to show here, for user to edit and update them. after edit and click the update button, those info should be update to supabase database and the heatmap info will be changes and update to the newest info set by user. 
+
+update and complete the edit heatmap button function, whenever user click the edit heatmap, it should land on a page that look almost the same with the create new heatmap page, the only different is those input column will be filled with the selected heatmap info that stored in supabase to show here, for user to edit and update them. after edit and click the update button, those info should be update to supabase database and the heatmap info will be changes and update to the newest info set by user. 
+
 
 ## 2025-02-05
 
@@ -425,19 +438,6 @@ Note: This log will be updated as development progresses. Each update will inclu
    - Add more customization options
    - Improve mobile responsiveness
 
-# task list
-there is sometime duplicate nav bar appear on dashboard. make sure the nav bar follow @ condition written here.  
-
-
-I just notice the reset password button on sign up login page disapapear, i dont see any reset password button
-
-
-sign up using esixting account still didnt show notification to user about the email is already been register and let them to sign in 
-
-update and complete the edit heatmap button function, whenever user click the edit heatmap, it should land on a page that look almost the same with the create new heatmap page, the only different is those input column will be filled with the selected heatmap info that stored in supabase to show here, for user to edit and update them. after edit and click the update button, those info should be update to supabase database and the heatmap info will be changes and update to the newest info set by user. 
-
-
-show loading or creating or logging in whenever it take some time to navigate to another page. I noticed most of the time those success notification pop out too fast, but page still havet navigate. example after log in success, I already see log in success but nothing happen, i confuse what is going on, and only wait sometime then only it take me to the dashboard. whenever you want to show success notification, make sure it done the step and no waiting for user. you can show success at the same time when You navagate to the next page, then no confussion, just show loading or processing before, in the wait time. same with create new heatmap. the successful create new heatmap show only be show at the time when successful navigate user back to dashboard, just show creating heatmap or anythings when you need some time to process and navigate.
 
 
 ## 2024-02-09
