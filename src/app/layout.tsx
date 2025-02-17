@@ -101,13 +101,13 @@ export default async function RootLayout({
             <Toaster
               position="top-center"
               toastOptions={{
+                duration: 5000,
                 style: {
                   background: 'var(--background)',
                   color: 'var(--foreground)',
                   border: '1px solid var(--border)',
                 },
                 className: 'text-sm font-medium',
-                duration: 3000,
               }}
             />
           </ThemeProvider>
