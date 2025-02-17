@@ -135,7 +135,7 @@ export default async function RootLayout({
               visibleToasts={6}
               toastOptions={{
                 duration: 5000,
-                className: "fixed !bg-background !text-foreground border border-border shadow-lg",
+                className: "fixed !bg-background !text-foreground border border-border shadow-lg !opacity-100",
                 style: {
                   marginTop: '4rem',
                   zIndex: 999999,
@@ -148,6 +148,8 @@ export default async function RootLayout({
                   transform: 'translateZ(0)',
                   willChange: 'transform',
                   pointerEvents: 'auto',
+                  opacity: 1,
+                  visibility: 'visible',
                 },
               }}
             />

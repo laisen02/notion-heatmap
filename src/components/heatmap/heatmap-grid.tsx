@@ -231,7 +231,7 @@ export function HeatmapGrid({
   }, [dates, weeks.length])
 
   return (
-    <div className="relative w-full overflow-x-auto">
+    <div className="relative w-full">
       <div className="min-w-max pb-4">
         <div className={cn("grid gap-px", className)}>
           {/* Month labels */}
