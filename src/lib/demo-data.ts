@@ -25,8 +25,7 @@ export const getDemoConfig = (): HeatmapConfig => ({
 
 export const generateDemoData = (): HeatmapData[] => {
   const data: HeatmapData[] = []
-  // Use a fixed date for demo data to ensure consistency
-  const today = new Date('2024-03-21')
+  const today = new Date()
   today.setHours(0, 0, 0, 0)
   
   const seededRandom = (seed: number) => {

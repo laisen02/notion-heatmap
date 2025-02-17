@@ -25,35 +25,42 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
       const supabase = createClientComponentClient()
+      
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
         })
+
+        if (error?.message.includes('already registered')) {
+          toast.error('Email already registered. Please sign in instead.')
+          setIsSignUp(false)
+          return
+        }
+
         if (error) throw error
-        toast.success("Check your email to confirm your account")
+        
+        toast.success('Check your email to confirm your account')
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
+
         if (error) throw error
-        
+
+        toast.loading('Signing in...')
         await router.push('/dashboard')
-        toast.success('Successfully logged in')
+        toast.success('Successfully signed in')
       }
     } catch (error: any) {
-      console.error("Auth error:", error)
-      toast.error(error.message || "Authentication failed")
+      toast.error(error.message)
     } finally {
       setIsLoading(false)
     }
