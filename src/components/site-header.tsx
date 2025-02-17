@@ -1,13 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Loading } from "@/components/ui/loading"
+import { toast } from "sonner"
 
 export function SiteHeader() {
   const pathname = usePathname()
@@ -39,10 +39,27 @@ export function SiteHeader() {
     setIsLoggingOut(true)
     try {
       const supabase = createClientComponentClient()
-      await supabase.auth.signOut()
-      await router.push('/')
-    } catch (error) {
+      
+      // Show loading state
+      toast.loading('Signing out...')
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+
+      // Clear session state
+      setSession(null)
+      
+      // Clear any cached data
+      localStorage.removeItem('supabase.auth.token')
+      
+      // Force reload to clear all state
+      window.location.href = '/'
+      
+      toast.success('Signed out successfully')
+    } catch (error: any) {
       console.error('Error signing out:', error)
+      toast.error('Failed to sign out')
     } finally {
       setIsLoggingOut(false)
     }
