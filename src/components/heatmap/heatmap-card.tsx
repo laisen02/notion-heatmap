@@ -121,6 +121,11 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
   }, [data, selectedYear])
 
   const refreshData = async () => {
+    if (config.isDemo) {
+      // Don't fetch for demo mode
+      return
+    }
+
     setIsLoading(true)
     try {
       const response = await fetch('/api/notion/data', {
@@ -128,9 +133,7 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          heatmapId: config.id,
-        }),
+        body: JSON.stringify({ heatmapId: config.id }),
       })
 
       if (!response.ok) {
@@ -142,8 +145,8 @@ export function HeatmapCard({ config, data: initialData, isEmbed = false, showCo
       setData(newData)
       toast.success('Data refreshed successfully')
     } catch (error) {
-      console.error('Error refreshing data:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to refresh data')
+      console.error('Error fetching data:', error)
+      toast.error('Failed to refresh data')
     } finally {
       setIsLoading(false)
     }

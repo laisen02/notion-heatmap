@@ -26,4 +26,5 @@ export interface HeatmapConfig {
   }
   embedLink?: string
   display_order: number
+  isDemo?: boolean
 } 
